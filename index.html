@@ -28,17 +28,19 @@
             background: radial-gradient(circle at center, #252836 0%, #101218 100%);
         }
         #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-        }
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+    z-index: 20; /* 加上這行，確保 UI 介面在最上層 */
+}
+
         .hud-top {
             display: flex;
             justify-content: space-between;
@@ -62,16 +64,19 @@
             font-weight: bold;
         }
         .btn-pause-hud {
-            pointer-events: auto;
-            background: rgba(255, 204, 0, 0.2);
-            border: 2px solid #ffcc00;
-            color: #ffcc00;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    pointer-events: auto;
+    background: rgba(255, 204, 0, 0.2);
+    border: 2px solid #ffcc00;
+    color: #ffcc00;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 30; /* 加上這兩行，確保暫停按鈕永遠高於觸控層可點擊 */
+}
+
         .btn-pause-hud:active {
             background: rgba(255, 204, 0, 0.5);
             transform: scale(0.95);
