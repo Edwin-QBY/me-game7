@@ -72,8 +72,8 @@ function renderSkins(){document.getElementById('skinChoices').innerHTML=skinList
 
 /* ===== 商店道具資料：每個 apply 函式負責套用該道具效果 ===== */
 const itemPool=[
-{id:'dodge_glove',title:'輕盈手套',desc:'閃避機率 +5%（最高 99.9%）。',price:35,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+1.05)},
-{id:'dodge_cloak',title:'影子斗篷',desc:'閃避機率 +10%（最高 99.9%）。',price:55,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+1.1)},
+{id:'dodge_glove',title:'輕盈手套',desc:'閃避機率 +5%（最高 99.9%）。',price:35,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.05)},
+{id:'dodge_cloak',title:'影子斗篷',desc:'閃避機率 +10%（最高 99.9%）。',price:55,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.1)},
 {id:'gun',title:'強化彈藥',desc:'攻擊傷害提升 12 點。',price:30,apply:()=>player.damage+=12},
 {id:'truth',title:'真理',desc:'每次取得，所有最終造成的傷害增加 100%。',price:100,apply:()=>{player.truthLevel=(player.truthLevel||0)+1;player.truthUnlocked=true}},
 {id:'speed',title:'跑鞋',desc:'移動速度提升 20%。',price:25,apply:()=>{player.speed*=1.2;player.speedCap=Math.max(player.speedCap,player.speed)}},
