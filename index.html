@@ -63,7 +63,7 @@ function resizeCanvas(){canvas.width=innerWidth;canvas.height=innerHeight}addEve
 
 /* ===== 對局狀態、玩家與遊戲物件 ===== */
 let gameState='START',wave=1,waveTimer=20,timerInterval=null,kills=0,shootCounter=0,enemySpawnCounter=0,shopChoiceIds=[],purchasedItemIds=[],shopRerollCount=0,classId='archer',weaponId='bow',summonCounter=0,pendingPetUpgrades=0;
-const newPlayer=()=>({x:canvas.width/2,y:canvas.height/2,radius:18,speed:4,speedCap:4,maxHp:100,hp:100,hpRegen:0,armor:0,gold:15,attackSpeed:32,damage:20,range:240,vampire:0,critChance:.15,critDamage:1.5,dodgeChance:0,attractionRange:120,summonDamage:16,incomeBonus:0,revives:0,reflect:.0,droneCount:0,turretCount:0,lastDamageFeedback:0,truthUnlocked:false,truthLevel:0,petUnlocked:false,petLevel:0,invulnerabilityFrames:0});
+const newPlayer=()=>({x:canvas.width/2,y:canvas.height/2,radius:18,speed:4,speedCap:4,maxHp:100,hp:100,hpRegen:0,armor:0,gold:15,attackSpeed:32,damage:20,range:240,vampire:0,critChance:.15,critDamage:1.5,dodgeChance:0,attractionRange:120,summonDamage:16,incomeBonus:0,revives:0,reflect:.0,droneCount:0,turretCount:0,lastDamageFeedback:0,truthUnlocked:false,truthLevel:0,petUnlocked:false,petLevel:0,invulnerabilityFrames:0,permanentPurchasedIds:[],hpDamagePercent:false});
 let player=newPlayer(),enemies=[],bullets=[],materials=[],particles=[],damageNumbers=[],slashes=[],turrets=[],skillFrame=0,droneCooldowns=[];const keys={},touchData={active:false,vx:0,vy:0};
 function startInvulnerability(frames=TRANSITION_INVULNERABILITY_FRAMES){player.invulnerabilityFrames=Math.max(player.invulnerabilityFrames||0,frames)}
 function clampPlayerSpeed(){player.speedCap=clamp(Number(player.speedCap)||4,0,PLAYER_SPEED_CAP_MAX);player.speed=clamp(Number(player.speed)||0,0,player.speedCap)}
@@ -76,6 +76,7 @@ function renderSkins(){document.getElementById('skinChoices').innerHTML=skinList
 
 /* ===== 商店道具資料：每個 apply 函式負責套用該道具效果 ===== */
 const itemPool=[
+{id:'hp_percent_dmg',title:'割裂利刃',desc:'每次攻擊額外造成敵方當前血量 1% 的傷害（只能購買一次）。',price:80,unique:true,apply:()=>player.hpDamagePercent=true}
 {id:'dodge_glove',title:'輕盈手套',desc:'閃避機率 +5%（最高 99.9%）。',price:35,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.05)},
 {id:'dodge_cloak',title:'影子斗篷',desc:'閃避機率 +10%（最高 99.9%）。',price:55,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.1)},
 {id:'gun',title:'強化彈藥',desc:'攻擊傷害提升 12 點。',price:30,apply:()=>player.damage+=12},
