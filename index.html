@@ -101,7 +101,7 @@ function spawnParticles(x,y,color,n=6,spread=1){const s=Math.max(.25,settings.ef
 function addDamageNumber(x,y,text,color='#fff',critical=false){damageNumbers.push({x,y,text,life:1,vy:-1.2,color,critical})}
 function addSlash(x,y,angle,length,ttl=.16,width=14){slashes.push({x,y,angle,length,ttl,life:ttl,isSkin:currentSkinId==='summer_skin',width});if(currentSkinId==='summer_skin'){const count=Math.round(14*Math.max(.25,settings.effects));for(let i=0;i<count;i++){const a=angle+(Math.random()-.5)*.9,v=Math.random()*6+3,color=Math.random()<.5?'#90e0ef':(Math.random()<.5?'#0077b6':'#caf0f8');particles.push({x:x+Math.cos(angle)*Math.random()*length*.5,y:y+Math.sin(angle)*Math.random()*length*.5,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,color,radius:Math.random()*3.5+2,decay:.02+Math.random()*.03})}}}
 // 依敵人種類與波次建立生命、速度及碰撞傷害；保留原本各波次敵人平衡設定。
-function makeEnemy(type,x,y){const boss=type==='boss',elite=type==='elite',late=Math.max(0,wave-9),waveMultiplier=wave>=10?wave:1,hpScale=Math.pow(2*wave,late)*waveMultiplier,damageScale=Math.pow(2*wave,late)*waveMultiplier,speedScale=Math.pow(1.035,late),radiusBoost=wave>=10?1+(wave-10)*.04:1,hp=(boss?1800+wave*260:elite?260+wave*85:35+wave*18)*hpScale,radius=(boss?36:elite?25:(Math.random()<.25?12:16))*radiusBoost,speed=(boss?.8:elite?1.15:(Math.random()<.18?2.4:1.6)+wave*.05)*speedScale;return{x,y,type,radius,hp,maxHp:hp,speed,color:boss?'#c86bff':elite?'#ff9d42':'#ff3366',damage:(boss?26:elite?18:8+wave*.4)*damageScale,cooldown:elite?20+Math.random()*18:0,attack:null}}
+function makeEnemy(type,x,y){const boss=type==='boss',elite=type==='elite',late=Math.max(0,wave-9),waveMultiplier=wave>=10?wave:1,hpScale=Math.pow(0.8*wave,late)*waveMultiplier,damageScale=Math.pow(0.8*wave,late)*waveMultiplier,speedScale=Math.pow(1.035,late),radiusBoost=wave>=10?1+(wave-10)*.04:1,hp=(boss?1800+wave*260:elite?260+wave*85:35+wave*18)*hpScale,radius=(boss?36:elite?25:(Math.random()<.25?12:16))*radiusBoost,speed=(boss?.8:elite?1.15:(Math.random()<.18?2.4:1.6)+wave*.05)*speedScale;return{x,y,type,radius,hp,maxHp:hp,speed,color:boss?'#c86bff':elite?'#ff9d42':'#ff3366',damage:(boss?26:elite?18:8+wave*.4)*damageScale,cooldown:elite?20+Math.random()*18:0,attack:null}}
 function spawnEnemy(type='normal'){const a=Math.random()*Math.PI*2,d=Math.max(canvas.width,canvas.height)/2+70;enemies.push(makeEnemy(type,player.x+Math.cos(a)*d,player.y+Math.sin(a)*d))}
 
 /* ===== 波次、計時與遊戲流程 ===== */
@@ -124,7 +124,22 @@ function triggerShop(){
 }
 
 function currentRerollCost(){return SHOP_REROLL_BASE_COST+shopRerollCount*SHOP_REROLL_COST_STEP}
-function rerollShop(){const cost=currentRerollCost();if(gameState!=='SHOP'||player.gold<cost)return;player.gold-=cost;shopRerollCount++;const available=itemPool.filter(item=>!shopChoiceIds.includes(item.id));shopChoiceIds=available.sort(()=>Math.random()-.5).slice(0,4).map(item=>item.id);renderShop();updateHUD();updateStatsDisplay();saveGame()}
+function rerollShop(){
+  const cost = currentRerollCost();
+  if (gameState !== 'SHOP' || player.gold < cost) return;
+  player.gold -= cost;
+  shopRerollCount++;
+  
+  purchasedItemIds = []; // <-- 【新增這行】刷新時清空已購買紀錄，允許新刷出的道具再次購買
+  
+  const available = itemPool.filter(item => !shopChoiceIds.includes(item.id));
+  shopChoiceIds = available.sort(() => Math.random() - .5).slice(0, 4).map(item => item.id);
+  renderShop();
+  updateHUD();
+  updateStatsDisplay();
+  saveGame();
+}
+
 function makeShopCard(title,desc,price,onClick,disabled=false){const card=document.createElement('button');card.className='shop-card';card.innerHTML=`<strong>${title}</strong><small>${desc}</small><br><em>價格：${price}</em>`;card.disabled=disabled;card.onclick=onClick;return card}
 // 產生商店道具卡，並保留寵物解鎖／升級選項。
 function renderShop(){const grid=document.getElementById('shopGrid');grid.innerHTML='';for(const id of shopChoiceIds){const item=itemPool.find(x=>x.id===id);if(!item)continue;const card=makeShopCard(item.title,item.desc,item.price,()=>{if(player.gold<item.price||purchasedItemIds.includes(id))return;player.gold-=item.price;item.apply();purchasedItemIds.push(id);renderShop();updateHUD();updateStatsDisplay();saveGame()},player.gold<item.price||purchasedItemIds.includes(id));grid.appendChild(card)}if(!player.petUnlocked&&wave>10&&pendingPetUpgrades>0){grid.appendChild(makeShopCard('解鎖寵物','花費 100 金幣解鎖環繞跟隨寵物（擊殺精英怪或 Boss 後可購買）。',100,()=>{if(player.gold<100||player.petUnlocked||wave<=10||pendingPetUpgrades<=0)return;player.gold-=100;pendingPetUpgrades--;player.petUnlocked=true;renderShop();updateHUD();updateStatsDisplay();saveGame()},player.gold<100))}else if(player.petUnlocked&&wave>10&&pendingPetUpgrades>0){grid.appendChild(makeShopCard(`寵物升級（${pendingPetUpgrades} 次可選）`,`寵物目前等級 ${player.petLevel||0}；升級後所有最終傷害 +10%（等級倍率：1 + 0.1 × petLevel）。`,0,()=>{if(wave<=10||pendingPetUpgrades<=0)return;pendingPetUpgrades--;player.petLevel=(player.petLevel||0)+1;renderShop();updateHUD();updateStatsDisplay();saveGame()}))}const rerollBtn=document.getElementById('rerollShopBtn'),cost=currentRerollCost();rerollBtn.textContent=`刷新獎勵（消耗：${cost} 金幣）`;rerollBtn.disabled=player.gold<cost;const petBtn=document.getElementById('petQuickUpgradeBtn');const canQuickUpgrade=player.petUnlocked&&pendingPetUpgrades>0;petBtn.hidden=!canQuickUpgrade;petBtn.disabled=!canQuickUpgrade;petBtn.textContent=`一鍵升級寵物（+${pendingPetUpgrades}）`}
