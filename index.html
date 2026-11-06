@@ -19,10 +19,7 @@
 <!-- 遊戲畫布與 HUD -->
 <canvas id="gameCanvas"></canvas>
 <div class="low-health-vignette" id="lowHealthVignette"></div>
-<div id="ui-layer"><div class="hud-top"><div class="hud-panel"><div>波次：<span id="hud-wave">1</span></div><div>生命：<span id="hud-hp">100/100</span></div><div>金幣：<span id="hud-gold">15</span></div><div>時間：<span id="hud-timer">30s</span></div></div><div style="display: flex; flex-direction: column; align-items: flex-end;">
-    <button class="btn-pause" id="pauseBtn">⏸</button>
-    <div class="purchased-items-hud" id="purchasedItemsHud">持有道具：無</div>
-</div>
+<div id="ui-layer"><div class="hud-top"><div class="hud-panel"><div>波次：<span id="hud-wave">1</span></div><div>生命：<span id="hud-hp">100/100</span></div><div>金幣：<span id="hud-gold">15</span></div><div>時間：<span id="hud-timer">30s</span></div></div><button class="btn-pause" id="pauseBtn">⏸</button></div></div>
 <!-- 手機觸控搖桿 -->
 <div class="controls-layer" id="controlsLayer"><div class="stick" id="joystickBase"><i id="joystickThumb"></i></div></div>
 <!-- 開始與配置選單 -->
@@ -37,24 +34,6 @@
 <div class="modal-overlay" id="gameOverMenu" style="display:none"><div class="modal-title" style="color:#ff3366">馬鈴薯倒下了 (GAME OVER)</div><div class="modal-subtitle" id="gameOverStats"></div><button class="btn-menu" id="restartBtn">重新開始</button></div>
 <script>
 'use strict';
-
-  /* 道具持有清單顯示樣式 */
-.purchased-items-hud {
-    pointer-events: none;
-    margin-top: 8px;
-    background: rgba(20, 25, 35, 0.85);
-    border: 1px solid rgba(255, 204, 0, 0.4);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 11px;
-    max-width: 220px;
-    text-align: right;
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
-}
-.purchased-items-hud span {
-    color: #ffcc00;
-    font-weight: bold;
-}
 
 /* ===== 常數與職業／武器資料 ===== */
 const SAVE_KEY='spaceSpudArenaSaveV1',SETTINGS_KEY='spaceSpudSettingsV1',SKIN_KEY='spaceSpudSkinV1',SHOP_REROLL_BASE_COST=10,SHOP_REROLL_COST_STEP=10,TRANSITION_INVULNERABILITY_FRAMES=6,REVIVE_INVULNERABILITY_FRAMES=6,MAX_DEFENSE_RATE=.999,PLAYER_SPEED_CAP_MAX=40;
@@ -188,3 +167,4 @@ if(hasSave()){continueGameBtn.hidden=false;continueGameBtn.onclick=()=>{loadSave
 </script>
 </body>
 </html>
+
