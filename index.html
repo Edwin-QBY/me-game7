@@ -37,7 +37,7 @@
 <div class="modal-overlay" id="pauseMenu" style="display:none"><div class="modal-title">遊戲暫停</div><div class="modal-subtitle">角色能力與對局收益（分項整理）</div><div class="stats-grid" id="statsGrid"></div><div class="menu-buttons"><button class="btn-menu" id="resumeBtn">返回戰鬥</button><button class="btn-menu secondary" id="pauseSettingsBtn">設定</button><button class="btn-menu secondary" id="saveExitBtn">離開</button></div></div>
 <div class="modal-overlay" id="shopMenu" style="display:none"><div class="modal-title">戰利品商店 (SHOP)</div><div class="modal-subtitle">購買道具強化你的馬鈴薯！</div>
 <div style="color:#fc0;font-size:16px;font-weight:bold;margin:4px 0 10px;">擁有金幣：<span id="shopGold">0</span></div>
-<div class="shop-grid" id="shopGrid"></div><div class="menu-buttons"><button class="btn-menu secondary" id="rerollShopBtn">刷新獎勵（消耗：10 金幣）</button><button class="btn-menu secondary" id="petQuickUpgradeBtn" hidden>一鍵升級寵物</button><button class="btn-menu" id="nextWaveBtn">下一波</button></div></div>
+<div class="shop-grid" id="shopGrid"></div><div class="menu-buttons"><button class="btn-menu secondary" id="rerollShopBtn">刷新獎勵（消耗：10 金幣）</button><button class="btn-menu secondary" id="autoBuyBtn">自動購買（花光金錢）</button><button class="btn-menu secondary" id="petQuickUpgradeBtn" hidden>一鍵升級寵物</button><button class="btn-menu" id="nextWaveBtn">下一波</button></div></div>
 <div class="modal-overlay" id="gameOverMenu" style="display:none"><div class="modal-title" style="color:#ff3366">馬鈴薯倒下了 (GAME OVER)</div><div class="modal-subtitle" id="gameOverStats"></div><button class="btn-menu" id="restartBtn">重新開始</button></div>
 <script>
 'use strict';
@@ -63,7 +63,7 @@ function resizeCanvas(){canvas.width=innerWidth;canvas.height=innerHeight}addEve
 /* ===== 對局狀態、玩家與遊戲物件 ===== */
 let gameState='START',wave=1,waveTimer=20,timerInterval=null,kills=0,shootCounter=0,enemySpawnCounter=0,shopChoiceIds=[],purchasedItemIds=[],shopRerollCount=0,classId='archer',weaponId='bow',summonCounter=0,pendingPetUpgrades=0;
 const newPlayer=()=>({x:canvas.width/2,y:canvas.height/2,radius:18,speed:4,speedCap:4,maxHp:100,hp:100,hpRegen:0,armor:0,gold:15,attackSpeed:32,damage:20,range:240,vampire:0,critChance:.15,critDamage:1.5,dodgeChance:0,attractionRange:120,summonDamage:16,incomeBonus:0,revives:0,reflect:.0,droneCount:0,turretCount:0,lastDamageFeedback:0,truthUnlocked:false,truthLevel:0,petUnlocked:false,petLevel:0,invulnerabilityFrames:0,permanentPurchasedIds:[],hpDamagePercent:false});
-let player=newPlayer(),enemies=[],bullets=[],materials=[],particles=[],damageNumbers=[],slashes=[],turrets=[],lightningBeams=[],eliteFlashes=[],skillFrame=0,droneCooldowns=[];const keys={},touchData={active:false,vx:0,vy:0};
+let player=newPlayer(),enemies=[],bullets=[],materials=[],particles=[],damageNumbers=[],slashes=[],turrets=[],lightningBeams=[],eliteFlashes=[],bossCircles=[],skillFrame=0,droneCooldowns=[];const keys={},touchData={active:false,vx:0,vy:0};
 function startInvulnerability(frames=TRANSITION_INVULNERABILITY_FRAMES){player.invulnerabilityFrames=Math.max(player.invulnerabilityFrames||0,frames)}
 function clampPlayerSpeed(){player.speedCap=clamp(Number(player.speedCap)||4,0,PLAYER_SPEED_CAP_MAX);player.speed=clamp(Number(player.speed)||0,0,player.speedCap)}
 function speedValueLabel(value){return Number(value||0).toFixed(1)}
@@ -71,9 +71,10 @@ function speedValueLabel(value){return Number(value||0).toFixed(1)}
 function showMenu(id){document.querySelectorAll('.modal-overlay').forEach(el=>el.style.display='none');const el=document.getElementById(id);if(el)el.style.display='flex'}
 function renderChoices(){document.getElementById('classChoices').innerHTML=classes.map(c=>`<button class="choice-card ${classId===c.id?'selected':''}" data-job="${c.id}"><strong>${c.name}</strong><small>${c.desc}</small></button>`).join('');document.getElementById('weaponChoices').innerHTML=weapons.map(w=>`<button class="weapon-card ${weaponId===w.id?'selected':''}" data-weapon="${w.id}"><strong>${w.name}</strong><small>${w.desc}<br>傷害 x${w.damage} · 攻擊距離 ${w.range} · 間隔 ${w.cooldown} 幀</small></button>`).join('');document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{classId=b.dataset.job;renderChoices()});document.querySelectorAll('[data-weapon]').forEach(b=>b.onclick=()=>{weaponId=b.dataset.weapon;renderChoices()})}
 function renderSkins(){document.getElementById('skinChoices').innerHTML=skinList.map(s=>`<button class="skin-card ${currentSkinId===s.id?'selected':''}" data-skin="${s.id}">${s.id==='summer_skin'?'<img class="skin-preview" src="'+summerSkinImg.src+'" alt="夏日皮膚預覽">':'<span class="skin-preview" style="height:90px;display:grid;place-items:center;font-size:42px">🥔</span>'}<strong>${s.name}</strong><small>${s.desc}</small></button>`).join('');document.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{currentSkinId=b.dataset.skin;saveSelectedSkin();renderSkins()})}
-/* ===== 商店道具資料：每個 apply 函式負責套用該道具效果 ===== */
+/* ===== 商店道具資料：新增暴擊傷害道具 ===== */
 const itemPool=[
 {id:'hp_percent_dmg',title:'割裂利刃',desc:'每次攻擊額外造成敵方當前血量 1% 的傷害（只能購買一次）。',price:80,unique:true,apply:()=>player.hpDamagePercent=true},
+{id:'crit_dmg_up',title:'致命瞄準鏡',desc:'暴擊傷害增加 +0.25 倍。',price:45,apply:()=>player.critDamage+=.25},
 {id:'dodge_glove',title:'輕盈手套',desc:'閃避機率 +5%（最高 99.9%）。',price:35,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.05)},
 {id:'dodge_cloak',title:'影子斗篷',desc:'閃避機率 +10%（最高 99.9%）。',price:55,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.1)},
 {id:'gun',title:'強化彈藥',desc:'攻擊傷害提升 12 點。',price:30,apply:()=>player.damage+=12},
@@ -98,13 +99,13 @@ function clamp(v,a,b){return Math.min(b,Math.max(a,v))}function enemyInView(e){r
 function spawnParticles(x,y,color,n=6,spread=1){const s=Math.max(.25,settings.effects);for(let i=0;i<Math.round(n*s);i++){const a=Math.random()*Math.PI*2,v=(Math.random()*3+1)*spread*s;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,color,radius:Math.random()*3+1,decay:.015+Math.random()*.025})}}
 function addDamageNumber(x,y,text,color='#fff',critical=false){damageNumbers.push({x,y,text,life:1,vy:-1.2,color,critical})}
 function addSlash(x,y,angle,length,ttl=.16,width=14){slashes.push({x,y,angle,length,ttl,life:ttl,isSkin:currentSkinId==='summer_skin',width});if(currentSkinId==='summer_skin'){const count=Math.round(14*Math.max(.25,settings.effects));for(let i=0;i<count;i++){const a=angle+(Math.random()-.5)*.9,v=Math.random()*6+3,color=Math.random()<.5?'#90e0ef':(Math.random()<.5?'#0077b6':'#caf0f8');particles.push({x:x+Math.cos(angle)*Math.random()*length*.5,y:y+Math.sin(angle)*Math.random()*length*.5,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,color,radius:Math.random()*3.5+2,decay:.02+Math.random()*.03})}}}
-// 依敵人種類與波次建立數值：前10關數值降低為原本的三分之一，第15關後次方暴增。
+// 依敵人種類與波次建立生命、速度及碰撞傷害；保留原本各波次敵人平衡設定。
 function makeEnemy(type, x, y) {
   const boss = type === 'boss', 
         elite = type === 'elite';
         
-  // 前15關基準倍率降低
-  const powerFactor = wave >= 15 ? Math.pow(wave, 3.5) : Math.max(0.33, (wave * 0.5);
+  // 核心：在第 15 關之後，使用 wave 的次方（例如 2.2 次方）來作為數值倍率
+  const powerFactor = wave >= 15 ? Math.pow(wave, 2.2) : Math.max(1, wave * 0.5);
   
   const hpScale = powerFactor,
         damageScale = powerFactor * 0.7, 
@@ -119,16 +120,15 @@ function makeEnemy(type, x, y) {
     x, y, type, radius, hp, maxHp: hp, speed,
     color: boss ? '#c86bff' : elite ? '#ff9d42' : '#ff3366',
     damage: (boss ? 26 : elite ? 18 : 8 + wave * .4) * damageScale,
-    cooldown: elite ? 20 + Math.random() * 18 : 0,
-    lastAttackTime: 0, // 限制單個怪物在 0.05 秒（3幀）內不能再次造成攻擊
+    cooldown: elite ? 20 + Math.random() * 18 : boss ? 50 + Math.random() * 30 : 0,
     attack: null
   };
 }
 function spawnEnemy(type='normal'){const a=Math.random()*Math.PI*2,d=Math.max(canvas.width,canvas.height)/2+70;enemies.push(makeEnemy(type,player.x+Math.cos(a)*d,player.y+Math.sin(a)*d))}
 /* ===== 波次、計時與遊戲流程 ===== */
-function initWave(){player.x=canvas.width/2;player.y=canvas.height/2;enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];waveTimer=Math.min(40,15+wave*5);enemySpawnCounter=0;gameState='PLAYING';startInvulnerability();if(wave%5===0)spawnEnemy('boss');if(wave>=3&&Math.random()<.3)spawnEnemy('elite');startTimer();saveGame()}
+function initWave(){player.x=canvas.width/2;player.y=canvas.height/2;enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];waveTimer=Math.min(40,15+wave*5);enemySpawnCounter=0;gameState='PLAYING';startInvulnerability();if(wave%5===0)spawnEnemy('boss');if(wave>=3&&Math.random()<.3)spawnEnemy('elite');startTimer();saveGame()}
 function startTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(gameState!=='PLAYING')return;waveTimer=Math.max(0,waveTimer-1);if(player.hpRegen>0&&player.hp<player.maxHp){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+player.hpRegen);const healed=Math.round(player.hp-before);if(healed>0)addDamageNumber(player.x,player.y-30,`+${healed}`,'#35e58a')}if(waveTimer<=0){clearInterval(timerInterval);triggerShop()}},1000)}
-function startGame(){initAudio();try{localStorage.removeItem(SAVE_KEY)}catch(e){}wave=1;kills=0;shootCounter=0;enemySpawnCounter=0;summonCounter=0;shopRerollCount=0;pendingPetUpgrades=0;player=newPlayer();enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];skillFrame=0;droneCooldowns=[];clampPlayerSpeed();initWave();showMenu('none');updateStatsDisplay();updateHUD()}
+function startGame(){initAudio();try{localStorage.removeItem(SAVE_KEY)}catch(e){}wave=1;kills=0;shootCounter=0;enemySpawnCounter=0;summonCounter=0;shopRerollCount=0;pendingPetUpgrades=0;player=newPlayer();enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];skillFrame=0;droneCooldowns=[];clampPlayerSpeed();initWave();showMenu('none');updateStatsDisplay();updateHUD()}
 function triggerShop(){
   initAudio();
   shopRerollCount = 0;
@@ -160,6 +160,35 @@ function rerollShop(){
   updateStatsDisplay();
   saveGame();
 }
+// 自動購買（花光金錢）：自動迴圈購買商店中可負擔的道具
+function autoBuyShop(){
+  if (gameState !== 'SHOP') return;
+  let boughtAny = true;
+  while (boughtAny) {
+    boughtAny = false;
+    for (const id of shopChoiceIds) {
+      const item = itemPool.find(x => x.id === id);
+      if (!item) continue;
+      const isBoughtThisWave = purchasedItemIds.includes(id);
+      if (item.unique && player.permanentPurchasedIds.includes(id)) continue;
+      if (!isBoughtThisWave && player.gold >= item.price) {
+        player.gold -= item.price;
+        item.apply();
+        purchasedItemIds.push(id);
+        if (item.unique && !player.permanentPurchasedIds.includes(id)) {
+          player.permanentPurchasedIds.push(id);
+        }
+        boughtAny = true;
+        break; // 買完一個重新檢查或下一輪
+      }
+    }
+  }
+  renderShop();
+  updateHUD();
+  updateStatsDisplay();
+  saveGame();
+}
+
 function makeShopCard(title, desc, price, onClick, disabled = false, isUnique = false){
   const card = document.createElement('button');
   card.className = `shop-card ${isUnique ? 'unique-item' : ''}`;
@@ -197,9 +226,10 @@ function renderShop(){
     grid.appendChild(card);
   }
   
-  if (!player.petUnlocked && wave > 10 && pendingPetUpgrades > 0){
-    grid.appendChild(makeShopCard('解鎖寵物','花費 100 金幣解鎖環繞跟隨寵物（擊殺精英怪或 Boss 後可購買）。',100,()=>{
-      if (player.gold < 100 || player.petUnlocked || wave <= 10 || pendingPetUpgrades <= 0) return;
+  // 更改寵物出現條件：第10關結束後（即 wave >= 10 且過關後，或是 wave >= 10）
+  if (!player.petUnlocked && wave >= 10 && pendingPetUpgrades > 0){
+    grid.appendChild(makeShopCard('解鎖寵物','花費 100 金幣解鎖環繞跟隨寵物。',100,()=>{
+      if (player.gold < 100 || player.petUnlocked || wave < 10 || pendingPetUpgrades <= 0) return;
       player.gold -= 100;
       pendingPetUpgrades--;
       player.petUnlocked = true;
@@ -208,9 +238,9 @@ function renderShop(){
       updateStatsDisplay();
       saveGame();
     }, player.gold < 100));
-  } else if (player.petUnlocked && wave > 10 && pendingPetUpgrades > 0){
-    grid.appendChild(makeShopCard(`寵物升級（${pendingPetUpgrades} 次可選）`,`寵物目前等級 ${player.petLevel||0}；升級後所有最終傷害 +10%（等級倍率：1 + 0.1 × petLevel）。`,0,()=>{
-      if (wave <= 10 || pendingPetUpgrades <= 0) return;
+  } else if (player.petUnlocked && wave >= 10 && pendingPetUpgrades > 0){
+    grid.appendChild(makeShopCard(`寵物升級（${pendingPetUpgrades} 次可選）`,`寵物目前等級 ${player.petLevel||0}；升級後所有最終傷害 +10%。`,0,()=>{
+      if (wave < 10 || pendingPetUpgrades <= 0) return;
       pendingPetUpgrades--;
       player.petLevel = (player.petLevel || 0) + 1;
       renderShop();
@@ -286,6 +316,30 @@ for(const ef of eliteFlashes){
   ctx.strokeRect(0, -ef.width/2, ef.length, ef.width);
   ctx.restore();
 }
+// 繪製 Boss 圓形攻擊預告與爆炸特效
+for(const bc of bossCircles){
+  ctx.save();
+  const p = clamp(bc.elapsed/bc.duration, 0, 1);
+  if(bc.isExploding){
+    ctx.fillStyle = `rgba(200, 107, 255, ${bc.life * 0.7})`;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${bc.life})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(bc.x, bc.y, bc.radius, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = `rgba(200, 107, 255, ${0.1 + p * 0.25})`;
+    ctx.strokeStyle = `rgba(200, 107, 255, ${0.4 + p * 0.6})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(bc.x, bc.y, bc.radius * p, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 for(const e of enemies){ctx.fillStyle=e.color;ctx.beginPath();ctx.arc(e.x,e.y,e.radius,0,Math.PI*2);ctx.fill();drawBar(e);if(e.type==='boss'||e.type==='elite'){ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText(e.type==='boss'?'BOSS':'ELITE',e.x,e.y-e.radius-17)}}for(const m of materials){ctx.save();ctx.translate(m.x,m.y);ctx.shadowBlur=18;ctx.shadowColor='#ffd75a';ctx.fillStyle='#f5c94c';ctx.beginPath();ctx.ellipse(0,0,10,7,0,0,Math.PI*2);ctx.fill();ctx.restore()}for(const turret of turrets){ctx.save();ctx.fillStyle='#ffb84d';ctx.strokeStyle='#fff0a8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(turret.x,turret.y,13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#352715';ctx.fillRect(turret.x-4,turret.y-17,8,12);ctx.restore()}const droneCount=player.droneCount||0;for(let i=0;i<droneCount;i++){const angle=skillFrame*.045+i*Math.PI*2/Math.max(1,droneCount),x=player.x+Math.cos(angle)*52,y=player.y+Math.sin(angle)*52;ctx.save();if(currentSkinId==='summer_skin'){ctx.fillStyle='#ffd166';ctx.shadowBlur=8;ctx.shadowColor='#ffd166';ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f77f00';ctx.beginPath();ctx.arc(x+3,y+1,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#101218';ctx.beginPath();ctx.arc(x+1,y-2,1,0,Math.PI*2);ctx.fill()}else{ctx.fillStyle='#6fffe0';ctx.shadowBlur=10;ctx.shadowColor='#6fffe0';ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill()}ctx.restore()}if(player.petUnlocked){const angle=skillFrame*.025,x=player.x+Math.cos(angle)*38,y=player.y+Math.sin(angle)*38;ctx.save();ctx.fillStyle='#fc0';ctx.shadowBlur=12;ctx.shadowColor='#fc0';ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#101218';ctx.beginPath();ctx.arc(x-2,y-1,1.2,0,Math.PI*2);ctx.arc(x+2,y-1,1.2,0,Math.PI*2);ctx.fill();ctx.restore()}for(const p of particles){ctx.globalAlpha=clamp(p.life,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(1,p.radius),0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;for(const d of damageNumbers){d.globalAlpha=clamp(d.life,0,1);ctx.fillStyle=d.color;ctx.font=`bold ${d.critical?18:14}px Arial`;ctx.textAlign='center';ctx.fillText(d.text,d.x,d.y)}ctx.globalAlpha=1;drawPlayer();const boss=enemies.find(e=>e.type==='boss'&&enemyInView(e));if(boss){const w=Math.min(canvas.width-40,900),x=(canvas.width-w)/2,y=110;ctx.fillStyle='#21132a';ctx.fillRect(x,y,w,13);ctx.fillStyle='#bd55f5';ctx.fillRect(x,y,w*clamp(boss.hp/boss.maxHp,0,1),13);ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.fillText('BOSS — 馬鈴薯深空戰記',canvas.width/2,y-5)}}
   
 /* ===== 戰鬥傷害、反傷與玩家受傷處理 ===== */
@@ -295,21 +349,14 @@ function dealEnemyDamage(e,amount,critical=false){
   if(player.hpDamagePercent){finalAmount+=e.hp*0.01;}
   const finalMultiplier=truthDamageMultiplier()*petDamageMultiplier(),finalAmountWithMult=finalAmount*finalMultiplier;
   e.hp-=finalAmountWithMult;
-  addDamageNumber(e.x,e.y-e.radius,`${Math.round(finalAmountWithMult)}`,critical?'#ffd66b':'#fff',critical);
+  // 暴擊傷害顯示數字顏色改為紅色 (#ff334d)
+  addDamageNumber(e.x,e.y-e.radius,`${Math.round(finalAmountWithMult)}`,critical?'#ff334d':'#fff',critical);
   const now=performance.now();
   if(!e.lastHitSound||now-e.lastHitSound>75){playSound('enemyHit');e.lastHitSound=now}
   if(player.vampire>0){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+player.vampire);const healed=Math.floor(player.hp-before);if(healed>0)addDamageNumber(e.x,e.y-30,`+${healed}`,'#35e58a')}
 }
-function damagePlayer(amount,source){if(player.invulnerabilityFrames>0)return;
-  // 限制所有單個怪物在 0.05 秒內不能再次造成攻擊
-  const currentFrame = skillFrame;
-  if(source){
-    if(source.lastAttackTime && currentFrame - source.lastAttackTime < 3) return;
-    source.lastAttackTime = currentFrame;
-  }
-  
-  if(Math.random()<clamp(player.dodgeChance,0,MAX_DEFENSE_RATE)){addDamageNumber(player.x,player.y-28,'閃避','#7af0ff');return}const actual=Math.max(1,amount*(1-clamp(player.armor,0,MAX_DEFENSE_RATE)));player.hp-=actual;spawnParticles(player.x,player.y,'#ff334d',10,1.1);const now=performance.now();if(!player.lastDamageFeedback||now-player.lastDamageFeedback>280){addDamageNumber(player.x,player.y-28,`-${Math.ceil(actual)}`,'#ff263f',true);playSound('playerHit');player.lastDamageFeedback=now}if(source&&enemyInView(source)&&player.reflect>0&&source.hp>0){const reflected=actual*player.reflect;dealEnemyDamage(source,reflected);addDamageNumber(source.x,source.y-source.radius,`${Math.round(reflected)} 反傷`,'#0fc');spawnParticles(source.x,source.y,'#0fc',4)}if(player.hp<=0){if(player.revives>0){player.revives--;player.hp=Math.max(1,Math.round(player.maxHp*.35));startInvulnerability(REVIVE_INVULNERABILITY_FRAMES);spawnParticles(player.x,player.y,'#0fc',28,1.5);addDamageNumber(player.x,player.y-30,'復活！','#0fc')}else gameOver()}}
-/* ===== 主遊程式更新：移動, 生成, 攻擊, 敵人, 掉落物與特效 ===== */
+function damagePlayer(amount,source){if(player.invulnerabilityFrames>0)return;if(Math.random()<clamp(player.dodgeChance,0,MAX_DEFENSE_RATE)){addDamageNumber(player.x,player.y-28,'閃避','#7af0ff');return}const actual=Math.max(1,amount*(1-clamp(player.armor,0,MAX_DEFENSE_RATE)));player.hp-=actual;spawnParticles(player.x,player.y,'#ff334d',10,1.1);const now=performance.now();if(!player.lastDamageFeedback||now-player.lastDamageFeedback>280){addDamageNumber(player.x,player.y-28,`-${Math.ceil(actual)}`,'#ff263f',true);playSound('playerHit');player.lastDamageFeedback=now}if(source&&enemyInView(source)&&player.reflect>0&&source.hp>0){const reflected=actual*player.reflect;dealEnemyDamage(source,reflected);addDamageNumber(source.x,source.y-source.radius,`${Math.round(reflected)} 反傷`,'#0fc');spawnParticles(source.x,source.y,'#0fc',4)}if(player.hp<=0){if(player.revives>0){player.revives--;player.hp=Math.max(1,Math.round(player.maxHp*.35));startInvulnerability(REVIVE_INVULNERABILITY_FRAMES);spawnParticles(player.x,player.y,'#0fc',28,1.5);addDamageNumber(player.x,player.y-30,'復活！','#0fc')}else gameOver()}}
+/* ===== 主遊程式更新：移動、生成、攻擊、敵人、掉落物與特效 ===== */
 function update(){if(gameState!=='PLAYING')return;if(player.invulnerabilityFrames>0)player.invulnerabilityFrames--;let mx=0,my=0;if(keys.KeyW||keys.ArrowUp)my--;if(keys.KeyS||keys.ArrowDown)my++;if(keys.KeyA||keys.ArrowLeft)mx--;if(keys.KeyD||keys.ArrowRight)mx++;if(touchData.active){mx=touchData.vx;my=touchData.vy}if(mx||my){const l=Math.hypot(mx,my)||1,moveSpeed=clamp(player.speed,0,player.speedCap);player.x=clamp(player.x+mx/l*moveSpeed,player.radius,canvas.width-player.radius);player.y=clamp(player.y+my/l*moveSpeed,player.radius,canvas.height-player.radius);if(mx!==0)player.facingRight=mx>0;if(currentSkinId==='summer_skin'&&Math.random()<.45){const waterColor=Math.random()<.6?'#90e0ef':'#0077b6';spawnParticles(player.x,player.y+12,waterColor,1,.6)}}
 if(++enemySpawnCounter>=Math.max(32,120-wave*5)){enemySpawnCounter=0;for(let n=0;n<Math.min(7,1+Math.floor((wave-1)/3));n++){const eliteChance=wave>=3?Math.min(.22,.08+(wave-3)*.012):0,fastChance=Math.min(.4,.2+wave*.005),roll=Math.random();spawnEnemy(roll<eliteChance?'elite':roll<eliteChance+fastChance?'fast':'normal')}}
 const weapon=weapons.find(w=>w.id===weaponId)||weapons[3],job=classes.find(c=>c.id===classId)||classes[1],interval=Math.max(7,Math.round(player.attackSpeed*weapon.cooldown/32));shootCounter=Math.min(shootCounter+1,interval);if(shootCounter>=interval){const target=nearestEnemy(player.x,player.y,weapon.range+220),angle=Math.atan2((target?target.y:player.y+my*90)-player.y,(target?target.x:player.x+mx*90)-player.x);if(target)player.facingRight=target.x>=player.x;if(weapon.kind==='melee'){const hits=enemies.filter(e=>{if(!enemyInView(e))return false;const dx=e.x-player.x,dy=e.y-player.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx),diff=Math.abs(Math.atan2(Math.sin(a-angle),Math.cos(a-angle)));return d<=weapon.range+e.radius+18&&diff<1.2}).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y));if(hits.length){shootCounter=0;addSlash(player.x,player.y,angle,weapon.range+30,.12,weapon.id==='halberd'?18:weapon.id==='sword'?15:12);for(const e of hits.slice(0,weapon.id==='halberd'?4:weapon.id==='sword'?3:2)){const crit=Math.random()<player.critChance;dealEnemyDamage(e,player.damage*weapon.damage*job.melee*(crit?player.critDamage+job.critDamage:1),crit)}playSound('hit')}}else{shootCounter=0;const bulletColor=currentSkinId==='summer_skin'?'#00b4d8':weapon.id==='crossbow'?'#ffb84d':weapon.id==='cannon'?'#ff734d':'#7bdff2';bullets.push({x:player.x,y:player.y,vx:Math.cos(angle)*weapon.speed,vy:Math.sin(angle)*weapon.speed,damage:player.damage*weapon.damage*job.range,radius:weapon.projectile,color:bulletColor,shape:weapon.shape,crit:Math.random()<player.critChance,life:120,splash:weapon.splash||0});playSound('coin')}}
@@ -326,9 +373,7 @@ for(const turret of turrets){
   if(turret.lightning){
     const dmg=player.summonDamage*1.5;
     dealEnemyDamage(target,dmg);
-    
     lightningBeams.push({x1:turret.x, y1:turret.y, x2:target.x, y2:target.y, life:1});
-    
     for(const e of enemies){
       if(e!==target&&enemyInView(e)&&Math.hypot(e.x-target.x,e.y-target.y)<90){
         dealEnemyDamage(e,dmg*.45);
@@ -351,6 +396,12 @@ for(let i=eliteFlashes.length-1;i>=0;i--){
   eliteFlashes[i].life-=0.15;
   if(eliteFlashes[i].life<=0)eliteFlashes.splice(i,1);
 }
+// 更新 Boss 圓形攻擊特效生命週期
+for(let i=bossCircles.length-1;i>=0;i--){
+  bossCircles[i].life-=0.08;
+  if(bossCircles[i].life<=0)bossCircles.splice(i,1);
+}
+
 for(let i=enemies.length-1;i>=0;i--){
   const e=enemies[i],d=Math.hypot(player.x-e.x,player.y-e.y)||1;
   if(e.type==='elite'){
@@ -361,7 +412,6 @@ for(let i=enemies.length-1;i>=0;i--){
       e.attack.x=e.x;e.attack.y=e.y;e.attack.elapsed++;
       if(e.attack.elapsed>=e.attack.duration){
         eliteFlashes.push({x:e.attack.x, y:e.attack.y, angle:e.attack.angle, length:e.attack.length, width:e.attack.width, life:1});
-        
         const dx=player.x-e.attack.x,dy=player.y-e.attack.y,forward=dx*Math.cos(e.attack.angle)+dy*Math.sin(e.attack.angle),side=-dx*Math.sin(e.attack.angle)+dy*Math.cos(e.attack.angle);
         if(forward>=-player.radius&&forward<=e.attack.length+player.radius&&Math.abs(side)<=e.attack.width/2+player.radius){
           damagePlayer(e.damage*1.5,e);
@@ -371,13 +421,34 @@ for(let i=enemies.length-1;i>=0;i--){
         e.cooldown=35+Math.random()*20;
       }
     }
+  }else if(e.type==='boss'){
+    if(e.cooldown>0)e.cooldown--;
+    // Boss 技能：在玩家原地產生圓形攻擊顯示，類似精英怪但為圓形範圍
+    if(!e.attack&&d<=500&&e.cooldown<=0){
+      e.attack={targetX:player.x, targetY:player.y, radius:110, elapsed:0, duration:45};
+      bossCircles.push({x:player.x, y:player.y, radius:110, elapsed:0, duration:45, life:1, isExploding:false});
+    }
+    e.x+=(player.x-e.x)/d*e.speed;e.y+=(player.y-e.y)/d*e.speed;
+    if(e.attack){
+      e.attack.elapsed++;
+      if(e.attack.elapsed>=e.attack.duration){
+        bossCircles.push({x:e.attack.targetX, y:e.attack.targetY, radius:e.attack.radius, elapsed:0, duration:15, life:1, isExploding:true});
+        const distToPlayer=Math.hypot(player.x-e.attack.targetX, player.y-e.attack.targetY);
+        if(distToPlayer<=e.attack.radius+player.radius){
+          damagePlayer(e.damage*2, e);
+          spawnParticles(player.x, player.y, '#c86bff', 20, 1.5);
+        }
+        e.attack=null;
+        e.cooldown=60+Math.random()*40;
+      }
+    }
   }else{
     e.x+=(player.x-e.x)/d*e.speed;e.y+=(player.y-e.y)/d*e.speed;
   }
-  if(e.type!=='elite'&&d<e.radius+player.radius+2)damagePlayer(e.damage,e);
+  if(e.type!=='elite'&&e.type!=='boss'&&d<e.radius+player.radius+2)damagePlayer(e.damage,e);
   if(e.hp<=0){
     kills++;
-    if((e.type==='elite'||e.type==='boss')&&wave>10)pendingPetUpgrades++;
+    if((e.type==='elite'||e.type==='boss')&&wave>=10)pendingPetUpgrades++;
     const gold=e.type==='boss'?50:e.type==='elite'?40:3;
     player.gold+=Math.round(gold*(1+player.incomeBonus));
     spawnParticles(e.x,e.y,e.color,e.type==='boss'?35:15,1.6);
@@ -387,7 +458,7 @@ for(let i=enemies.length-1;i>=0;i--){
 }
 for(let i=materials.length-1;i>=0;i--){const m=materials[i];if(m.x<0||m.x>canvas.width||m.y<0||m.y>canvas.height){m.x=clamp(m.x,5,Math.max(5,canvas.width-5));m.y=clamp(m.y,5,Math.max(5,canvas.height-5))}const d=Math.hypot(player.x-m.x,player.y-m.y);if(d<player.attractionRange){const a=Math.atan2(player.y-m.y,player.x-m.x),v=Math.min(9,4+(player.attractionRange-d)*.05);m.x+=Math.cos(a)*v;m.y+=Math.sin(a)*v;if(d<player.radius+10){player.gold+=m.value;addDamageNumber(player.x,player.y-28,`+${m.value}`,'#ffd700');playSound('coin');materials.splice(i,1)}}}for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay}particles=particles.filter(p=>p.life>0);for(const d of damageNumbers){d.y+=d.vy;d.life-=.02}damageNumbers=damageNumbers.filter(d=>d.life>0);if(player.hp>0&&waveTimer<=0&&enemies.length===0&&document.getElementById('shopMenu').style.display!=='flex')triggerShop();updateHUD();if(gameState==='PAUSE')updateStatsDisplay()}
 /* ===== 按鈕事件與設定儲存 ===== */
-function bind(id,fn){document.getElementById(id).addEventListener('click',fn)}bind('newGameBtn',()=>{renderChoices();showMenu('loadoutMenu')});bind('beginBattleBtn',()=>{if(classes.some(c=>c.id===classId)&&weapons.some(w=>w.id===weaponId))startGame()});bind('loadoutBackBtn',()=>showMenu('startMenu'));bind('openSkinsBtn',()=>{renderSkins();showMenu('skinMenu')});bind('skinBackBtn',()=>showMenu('startMenu'));bind('openSettingsBtn',()=>{syncSettings();showMenu('settingsMenu')});bind('settingsBackBtn',()=>{if(gameState==='PAUSE'){showMenu('pauseMenu')}else{showMenu('startMenu')}});bind('pauseBtn',togglePause);bind('resumeBtn',togglePause);bind('pauseSettingsBtn',()=>{syncSettings();showMenu('settingsMenu')});bind('saveExitBtn',()=>{saveGame();if(timerInterval)clearInterval(timerInterval);gameState='START';showMenu('startMenu')});bind('rerollShopBtn',rerollShop);bind('petQuickUpgradeBtn',quickUpgradePet);bind('nextWaveBtn',startNextWave);bind('restartBtn',()=>{document.getElementById('gameOverMenu').style.display='none';startGame()});
+function bind(id,fn){document.getElementById(id).addEventListener('click',fn)}bind('newGameBtn',()=>{renderChoices();showMenu('loadoutMenu')});bind('beginBattleBtn',()=>{if(classes.some(c=>c.id===classId)&&weapons.some(w=>w.id===weaponId))startGame()});bind('loadoutBackBtn',()=>showMenu('startMenu'));bind('openSkinsBtn',()=>{renderSkins();showMenu('skinMenu')});bind('skinBackBtn',()=>showMenu('startMenu'));bind('openSettingsBtn',()=>{syncSettings();showMenu('settingsMenu')});bind('settingsBackBtn',()=>{if(gameState==='PAUSE'){showMenu('pauseMenu')}else{showMenu('startMenu')}});bind('pauseBtn',togglePause);bind('resumeBtn',togglePause);bind('pauseSettingsBtn',()=>{syncSettings();showMenu('settingsMenu')});bind('saveExitBtn',()=>{saveGame();if(timerInterval)clearInterval(timerInterval);gameState='START';showMenu('startMenu')});bind('rerollShopBtn',rerollShop);bind('autoBuyBtn',autoBuyShop);bind('petQuickUpgradeBtn',quickUpgradePet);bind('nextWaveBtn',startNextWave);bind('restartBtn',()=>{document.getElementById('gameOverMenu').style.display='none';startGame()});
 function syncSettings(){soundToggle.checked=settings.sound;volumeSlider.value=Math.round(settings.volume*100);volumeText.textContent=`${Math.round(settings.volume*100)}%`;fxSlider.value=Math.round(settings.effects*100);fxText.textContent=`${Math.round(settings.effects*100)}%`;player.speedCap=clamp(Number(player.speedCap)||4,0,PLAYER_SPEED_CAP_MAX);player.speed=clamp(Number(player.speed)||0,0,player.speedCap);speedCapInput.value=player.speedCap;speedCapText.textContent=`${speedValueLabel(player.speedCap)}`;speedValueInput.value=player.speed;speedValueText.textContent=`${speedValueLabel(player.speed)}`}function storeSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(e){}}soundToggle.onchange=e=>{settings.sound=e.target.checked;storeSettings()};volumeSlider.oninput=e=>{settings.volume=Number(e.target.value)/100;volumeText.textContent=`${e.target.value}%`;storeSettings()};fxSlider.oninput=e=>{settings.effects=Number(e.target.value)/100;fxText.textContent=`${e.target.value}%`;storeSettings()};speedCapInput.oninput=e=>{const cap=clamp(Number(e.target.value)||0,0,PLAYER_SPEED_CAP_MAX);player.speedCap=cap;player.speed=clamp(player.speed,0,cap);speedCapText.textContent=`${speedValueLabel(cap)}`;speedValueInput.max=cap;speedValueInput.value=player.speed;speedValueText.textContent=`${speedValueLabel(player.speed)}`};speedValueInput.oninput=e=>{const value=clamp(Number(e.target.value)||0,0,player.speedCap||0);player.speed=value;speedValueText.textContent=`${speedValueLabel(value)}`};
 /* ===== 觸控搖桿、鍵盤控制、自動存檔與遊戲迴圈 ===== */
 const controlsLayer=document.getElementById('controlsLayer'),joystickBase=document.getElementById('joystickBase'),joystickThumb=document.getElementById('joystickThumb');let touchId=null,baseX=0,baseY=0;function resetTouch(){touchId=null;touchData.active=false;touchData.vx=touchData.vy=0;joystickBase.style.display='none';joystickThumb.style.transform='translate(0px,0px)'}if('ontouchstart'in window||navigator.maxTouchPoints>0)document.body.classList.add('touch-active');controlsLayer.addEventListener('touchstart',e=>{if(touchId!==null)return;for(const t of e.changedTouches){if(t.clientX<innerWidth*.62){touchId=t.identifier;baseX=t.clientX;baseY=t.clientY;joystickBase.style.left=`${baseX}px`;joystickBase.style.top=`${baseY}px`;joystickBase.style.display='block';touchData.active=true;break}}},{passive:true});controlsLayer.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===touchId){const dx=t.clientX-baseX,dy=t.clientY-baseY,len=Math.hypot(dx,dy),max=48,k=len>max?max/len:1,nx=dx*k,ny=dy*k;joystickThumb.style.transform=`translate(${nx}px,${ny}px)`;touchData.vx=nx/max;touchData.vy=ny/max}},{passive:true});controlsLayer.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===touchId)resetTouch()},{passive:true});controlsLayer.addEventListener('touchcancel',resetTouch,{passive:true});addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Escape')togglePause()});addEventListener('keyup',e=>keys[e.code]=false);addEventListener('pagehide',saveGame);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame()});setInterval(saveGame,1500);
