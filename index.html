@@ -1,4 +1,4 @@
-當前為11月7日下午8:07更新版本
+當前為11月7日下午9:37更新版本
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -394,7 +394,7 @@ for(let i=eliteFlashes.length-1;i>=0;i--){
 }
 // 更新 Boss 圓形攻擊特效生命週期
 for(let i=bossCircles.length-1;i>=0;i--){
-  bossCircles[i].life-=0.08;
+  bossCircles[i].life-=0.02;
   if(bossCircles[i].life<=0)bossCircles.splice(i,1);
 }
 for(let i=enemies.length-1;i>=0;i--){
@@ -423,14 +423,14 @@ for(let i=enemies.length-1;i>=0;i--){
   }else if(e.type==='boss'){
     if(e.cooldown>0)e.cooldown--;
     if(!e.attack&&d<=500&&e.cooldown<=0){
-      e.attack={targetX:player.x, targetY:player.y, radius:110, elapsed:0, duration:45};
-      bossCircles.push({x:player.x, y:player.y, radius:110, elapsed:0, duration:45, life:1, isExploding:false});
+      e.attack={targetX:player.x, targetY:player.y, radius:36, elapsed:0, duration:120};
+      bossCircles.push({x:player.x, y:player.y, radius:36, elapsed:0, duration:120, life:1, isExploding:false});
     }
     e.x+=(player.x-e.x)/d*e.speed;e.y+=(player.y-e.y)/d*e.speed;
     if(e.attack){
       e.attack.elapsed++;
       if(e.attack.elapsed>=e.attack.duration){
-        bossCircles.push({x:e.attack.targetX, y:e.attack.targetY, radius:e.attack.radius, elapsed:0, duration:15, life:1, isExploding:true});
+        bossCircles.push({x:e.attack.targetX, y:e.attack.targetY, radius:e.attack.radius, elapsed:0, duration:30, life:1, isExploding:true});
         const distToPlayer=Math.hypot(player.x-e.attack.targetX, player.y-e.attack.targetY);
         if(distToPlayer<=e.attack.radius+player.radius){
           damagePlayer(e.damage*2, e);
