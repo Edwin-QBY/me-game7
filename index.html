@@ -291,6 +291,35 @@ function dealEnemyDamage(e,amount,critical=false){
 
 function damagePlayer(amount,source){if(player.invulnerabilityFrames>0)return;if(Math.random()<clamp(player.dodgeChance,0,MAX_DEFENSE_RATE)){addDamageNumber(player.x,player.y-28,'閃避','#7af0ff');return}const actual=Math.max(1,amount*(1-clamp(player.armor,0,MAX_DEFENSE_RATE)));player.hp-=actual;spawnParticles(player.x,player.y,'#ff334d',10,1.1);const now=performance.now();if(!player.lastDamageFeedback||now-player.lastDamageFeedback>280){addDamageNumber(player.x,player.y-28,`-${Math.ceil(actual)}`,'#ff263f',true);playSound('playerHit');player.lastDamageFeedback=now}if(source&&enemyInView(source)&&player.reflect>0&&source.hp>0){const reflected=actual*player.reflect;dealEnemyDamage(source,reflected);addDamageNumber(source.x,source.y-source.radius,`${Math.round(reflected)} 反傷`,'#0fc');spawnParticles(source.x,source.y,'#0fc',4)}if(player.hp<=0){if(player.revives>0){player.revives--;player.hp=Math.max(1,Math.round(player.maxHp*.35));startInvulnerability(REVIVE_INVULNERABILITY_FRAMES);spawnParticles(player.x,player.y,'#0fc',28,1.5);addDamageNumber(player.x,player.y-30,'復活！','#0fc')}else gameOver()}}
 
+  for(const turret of turrets){
+  turret.cooldown=(turret.cooldown||0)-1;
+  if(turret.cooldown>0)continue;
+  const target=nearestEnemy(turret.x,turret.y,420);
+  if(!target)continue;
+  turret.cooldown=72;
+  const angle=Math.atan2(target.y-turret.y,target.x-turret.x);
+  
+  if(turret.lightning){
+    const dmg=player.summonDamage*1.5;
+    dealEnemyDamage(target,dmg);
+    
+    // 【新增】記錄主目標的雷電連線特效
+    lightningBeams.push({x1:turret.x, y1:turret.y, x2:target.x, y2:target.y, life:1});
+    
+    for(const e of enemies){
+      if(e!==target&&enemyInView(e)&&Math.hypot(e.x-target.x,e.y-target.y)<90){
+        dealEnemyDamage(e,dmg*.45);
+        // 【新增】記錄連鎖擴散到周圍怪物的雷電特效
+        lightningBeams.push({x1:target.x, y1:target.y, x2:e.x, y2:e.y, life:1});
+      }
+    }
+    spawnParticles(target.x,target.y,'#a8f7ff',10,1.5);
+  }else{
+    bullets.push({x:turret.x,y:turret.y,vx:Math.cos(angle)*7,vy:Math.sin(angle)*7,damage:player.summonDamage*1.5,radius:7,color:'#ffb84d',shape:'orb',crit:false,life:120,splash:0});
+  }
+  turret.lightning=!turret.lightning;
+}
+
 /* ===== 主遊程式更新：移動、生成、攻擊、敵人、掉落物與特效 ===== */
 function update(){if(gameState!=='PLAYING')return;if(player.invulnerabilityFrames>0)player.invulnerabilityFrames--;let mx=0,my=0;if(keys.KeyW||keys.ArrowUp)my--;if(keys.KeyS||keys.ArrowDown)my++;if(keys.KeyA||keys.ArrowLeft)mx--;if(keys.KeyD||keys.ArrowRight)mx++;if(touchData.active){mx=touchData.vx;my=touchData.vy}if(mx||my){const l=Math.hypot(mx,my)||1,moveSpeed=clamp(player.speed,0,player.speedCap);player.x=clamp(player.x+mx/l*moveSpeed,player.radius,canvas.width-player.radius);player.y=clamp(player.y+my/l*moveSpeed,player.radius,canvas.height-player.radius);if(mx!==0)player.facingRight=mx>0;if(currentSkinId==='summer_skin'&&Math.random()<.45){const waterColor=Math.random()<.6?'#90e0ef':'#0077b6';spawnParticles(player.x,player.y+12,waterColor,1,.6)}}
 // 依波次間隔與精英／快速怪機率生成敵人。
