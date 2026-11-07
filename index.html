@@ -125,7 +125,7 @@ function addSlash(x,y,angle,length,ttl=.16,width=14){slashes.push({x,y,angle,len
 // 依敵人種類與波次建立生命、速度及碰撞傷害；第 15 關後次方暴增。
 function makeEnemy(type,x,y){
   const boss=type==='boss',elite=type==='elite';
-  const powerFactor=wave>=15?Math.pow(wave,2.2):Math.max(1,wave*1.2);
+  const powerFactor=wave>=15?Math.pow(wave,2.2):Math.max(1,wave*0.5);
   const hpScale=powerFactor,damageScale=powerFactor*0.7,speedScale=wave>=15?1+(wave-15)*0.015:1,radiusBoost=wave>=10?1+(wave-10)*.04:1;
   const hp=(boss?1800+wave*260:elite?260+wave*85:35+wave*18)*hpScale,radius=(boss?36:elite?25:(Math.random()<.25?12:16))*radiusBoost,speed=(boss?.8:elite?1.15:(Math.random()<.18?2.4:1.6)+wave*.05)*speedScale;
   return{x,y,type,radius,hp,maxHp:hp,speed,color:boss?'#c86bff':elite?'#ff9d42':'#ff3366',damage:(boss?26:elite?18:8+wave*.4)*damageScale,cooldown:elite?20+Math.random()*18:0,attack:null}
