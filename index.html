@@ -77,7 +77,7 @@
 <div class="modal-overlay" id="shopMenu" style="display:none">
   <div class="modal-title">戰利品商店 (SHOP)</div>
   <div class="modal-subtitle">購買道具強化你的馬鈴薯！</div>
-<div style="color:#fc0;font-size:16px;font-weight:bold;margin:4px 0 10px;">擁有金幣：<span id="shopGold">50</span></div>
+<div style="color:#fc0;font-size:16px;font-weight:bold;margin:4px 0 10px;">擁有金幣：<span id="shopGold">0</span></div>
 <div class="shop-grid" id="shopGrid"></div><div class="menu-buttons"><button class="btn-menu secondary" id="rerollShopBtn">刷新獎勵（消耗：10 金幣）</button>
   <button class="btn-menu secondary" id="autoBuyBtn">自動購買（花光金錢）</button>
   <button class="btn-menu secondary" id="petQuickUpgradeBtn" hidden>一鍵升級寵物</button>
@@ -91,9 +91,26 @@
   
 /* ===== 常數與職業／武器資料 ===== */
 const SAVE_KEY='spaceSpudArenaSaveV1',SETTINGS_KEY='spaceSpudSettingsV1',SKIN_KEY='spaceSpudSkinV1',SHOP_REROLL_BASE_COST=10,SHOP_REROLL_COST_STEP=10,TRANSITION_INVULNERABILITY_FRAMES=6,REVIVE_INVULNERABILITY_FRAMES=60,MAX_DEFENSE_RATE=.999,PLAYER_SPEED_CAP_MAX=40;
-const classes=[{id:'berserker',name:'狂戰士',desc:'近戰傷害 +100%，暴擊傷害 +75%。',melee:2,range:1,crit:0,critDamage:.75,summon:1},{id:'archer',name:'弓箭手',desc:'遠程傷害 +100%，射程 +25%。',melee:1,range:2,crit:0,critDamage:0,summon:1},{id:'summoner',name:'召喚師',desc:'召喚與魔法傷害 +180%，遠程魔彈額外攻擊。',melee:1,range:1,summon:2.8,crit:0,critDamage:0}];
-const weapons=[{id:'knife',name:'刀',desc:'短距離、高頻率。',damage:1.25,range:110,cooldown:24,speed:14,kind:'melee',projectile:4,shape:'slash'},{id:'sword',name:'劍',desc:'近中距離，均衡輸出。',damage:1.15,range:150,cooldown:30,speed:13,kind:'melee',projectile:5,shape:'slash'},{id:'halberd',name:'長戟',desc:'長距離斬擊，打擊範圍大。',damage:1.55,range:200,cooldown:48,speed:12,kind:'melee',projectile:6,shape:'slash'},{id:'bow',name:'弓',desc:'快速箭矢。',damage:1.05,range:320,cooldown:38,speed:16,kind:'ranged',projectile:4,shape:'arrow'},{id:'crossbow',name:'十字弩',desc:'高傷害穿透。',damage:1.65,range:290,cooldown:55,speed:18,kind:'ranged',projectile:5,shape:'bolt'},{id:'cannon',name:'炮',desc:'重型爆炸砲彈。',damage:2.2,range:300,cooldown:72,speed:11,kind:'ranged',projectile:8,shape:'orb',splash:45}];
-const skinList=[{id:'default',name:'預設馬鈴薯',desc:'原本的經典馬鈴薯外觀。'},{id:'summer_skin',name:'夏日海灘',desc:'紅髮夏日造型，附水花斬擊、移動浪花與海藍箭矢。'}];
+const classes=[{id:'berserker',name:'狂戰士',desc:'近戰傷害 +100%，暴擊傷害 +75%。',melee:2,range:1,crit:0,critDamage:.75,summon:1},
+               {id:'archer',name:'弓箭手',desc:'遠程傷害 +100%，射程 +25%。',melee:1,range:2,crit:0,critDamage:0,summon:1},
+               {id:'summoner',name:'召喚師',desc:'召喚與魔法傷害 +180%，遠程魔彈額外攻擊。',melee:1,range:1,summon:2.8,crit:0,critDamage:0}];
+  
+const weapons=[{id:'knife',name:'刀',desc:'短距離、高頻率。',
+                damage:1.25,range:110,cooldown:24,speed:14,kind:'melee',projectile:4,shape:'slash'},
+               {id:'sword',name:'劍',desc:'近中距離，均衡輸出。',
+                damage:1.15,range:150,cooldown:30,speed:13,kind:'melee',projectile:5,shape:'slash'},
+               {id:'halberd',name:'長戟',desc:'長距離斬擊，打擊範圍大。',
+                damage:1.55,range:200,cooldown:48,speed:12,kind:'melee',projectile:6,shape:'slash'},
+               {id:'bow',name:'弓',desc:'快速箭矢。',
+                damage:1.05,range:320,cooldown:38,speed:16,kind:'ranged',projectile:4,shape:'arrow'},
+               {id:'crossbow',name:'十字弩',desc:'高傷害穿透。',
+                damage:1.65,range:290,cooldown:55,speed:18,kind:'ranged',projectile:5,shape:'bolt'},
+               {id:'cannon',name:'炮',desc:'重型爆炸砲彈。',
+                damage:2.2,range:300,cooldown:72,speed:11,kind:'ranged',projectile:8,shape:'orb',splash:45}];
+  
+const skinList=[{id:'default',name:'預設馬鈴薯',desc:'原本的經典馬鈴薯外觀。'},
+                {id:'summer_skin',name:'夏日海灘',desc:'紅髮夏日造型，附水花斬擊、移動浪花與海藍箭矢。'}];
+  
 let currentSkinId='default';try{const storedSkin=localStorage.getItem(SKIN_KEY);if(skinList.some(s=>s.id===storedSkin))currentSkinId=storedSkin}catch(e){}
 const paperCanvas=document.createElement('canvas');paperCanvas.width=64;paperCanvas.height=90;const pctx=paperCanvas.getContext('2d');
 function renderDetailedSummerSkin(){pctx.clearRect(0,0,64,90);pctx.fillStyle='#e63946';pctx.fillRect(18,26,28,32);pctx.fillStyle='#ffe0bd';pctx.fillRect(24,48,6,25);pctx.fillRect(34,48,6,25);pctx.strokeStyle='#2b6cb0';pctx.lineWidth=1.2;pctx.beginPath();pctx.moveTo(24,56);pctx.lineTo(30,61);pctx.moveTo(30,61);pctx.lineTo(24,66);pctx.moveTo(24,66);pctx.lineTo(30,71);pctx.moveTo(34,56);pctx.lineTo(40,61);pctx.moveTo(40,61);pctx.lineTo(34,66);pctx.moveTo(34,66);pctx.lineTo(40,71);pctx.stroke();pctx.fillStyle='#2b6cb0';pctx.fillRect(23,73,8,3);pctx.fillRect(33,73,8,3);pctx.fillStyle='#ffe0bd';pctx.fillRect(23,34,18,16);pctx.fillStyle='rgba(255,255,255,.75)';pctx.fillRect(18,36,5,12);pctx.fillRect(41,36,5,12);pctx.fillStyle='#fff';pctx.fillRect(24,35,16,7);pctx.fillStyle='#1a365d';pctx.fillRect(24,45,16,5);pctx.fillStyle='#2b6cb0';pctx.beginPath();pctx.arc(30,38,2,0,Math.PI*2);pctx.arc(34,38,2,0,Math.PI*2);pctx.fill();pctx.fillRect(31,37,2,3);pctx.fillStyle='#ffe0bd';pctx.beginPath();pctx.arc(32,24,11,0,Math.PI*2);pctx.fill();pctx.fillStyle='#e63946';pctx.fillRect(21,14,22,11);pctx.fillRect(19,23,5,18);pctx.fillRect(40,23,5,18);pctx.fillStyle='#1a365d';pctx.beginPath();pctx.arc(28,24,1.8,0,Math.PI*2);pctx.arc(36,24,1.8,0,Math.PI*2);pctx.fill();pctx.fillStyle='#ffb703';pctx.beginPath();pctx.arc(32,9,4.5,0,Math.PI*2);pctx.fill();pctx.fillStyle='#fb8500';pctx.beginPath();pctx.arc(35,10,1.8,0,Math.PI*2);pctx.fill()}
