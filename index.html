@@ -71,19 +71,6 @@ function initAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.w
 function playSound(type){if(!settings.sound||settings.volume<=0)return;initAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;let duration=.09;o.connect(g);g.connect(audioCtx.destination);if(type==='playerHit'){duration=.24;o.type='sawtooth';o.frequency.setValueAtTime(105,t);o.frequency.exponentialRampToValueAtTime(42,t+duration)}else if(type==='coin'){duration=.2;o.type='triangle';o.frequency.setValueAtTime(620,t);o.frequency.exponentialRampToValueAtTime(1180,t+duration)}else{o.type=type==='enemyHit'||type==='hit'?'sawtooth':'triangle';o.frequency.setValueAtTime(type==='enemyHit'?230:type==='hit'?180:420,t)}g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((type==='playerHit'?.16:.08)*settings.volume,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.start(t);o.stop(t+duration+.01)}catch(e){}}
 function resizeCanvas(){canvas.width=innerWidth;canvas.height=innerHeight}addEventListener('resize',resizeCanvas);resizeCanvas();
 
-/* ===== 嘗試自動鎖定全螢幕與橫屏 ===== */
-function tryLockLandscape(){
-  try {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().then(() => {
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(() => {});
-        }
-      }).catch(() => {});
-    }
-  } catch(e) {}
-}
-
 /* ===== 對局狀態、玩家與遊戲物件 ===== */
 let gameState='START',wave=1,waveTimer=20,timerInterval=null,kills=0,shootCounter=0,enemySpawnCounter=0,shopChoiceIds=[],purchasedItemIds=[],shopRerollCount=0,classId='archer',weaponId='bow',summonCounter=0,pendingPetUpgrades=0;
 const newPlayer=()=>({x:canvas.width/2,y:canvas.height/2,radius:18,speed:4,speedCap:4,maxHp:100,hp:100,hpRegen:0,armor:0,gold:15,attackSpeed:32,damage:20,range:240,vampire:0,critChance:.15,critDamage:1.5,dodgeChance:0,attractionRange:120,summonDamage:16,incomeBonus:0,revives:0,reflect:.0,droneCount:0,turretCount:0,lastDamageFeedback:0,truthUnlocked:false,truthLevel:0,petUnlocked:false,petLevel:0,invulnerabilityFrames:0,permanentPurchasedIds:[],hpDamagePercent:false});
