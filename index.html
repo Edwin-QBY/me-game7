@@ -104,7 +104,7 @@ function makeEnemy(type, x, y) {
         elite = type === 'elite';
         
   // 核心：在第 15 關之後，使用 wave 的次方（例如 2.2 次方）來作為數值倍率
-  const powerFactor = wave >= 15 ? Math.pow(wave, 2.2) : Math.max(1, wave * 1.2);
+  const powerFactor = wave >= 15 ? Math.pow(wave, 2.2) : Math.max(1, wave * 0.5);
   
   const hpScale = powerFactor,
         damageScale = powerFactor * 0.7, 
