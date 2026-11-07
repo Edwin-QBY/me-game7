@@ -75,10 +75,20 @@ function startInvulnerability(frames=TRANSITION_INVULNERABILITY_FRAMES){player.i
 function clampPlayerSpeed(){player.speedCap=clamp(Number(player.speedCap)||4,0,PLAYER_SPEED_CAP_MAX);player.speed=clamp(Number(player.speed)||0,0,player.speedCap)}
 function speedValueLabel(value){return Number(value||0).toFixed(1)}
 
-/* ===== 選單切換與職業／武器／皮膚選擇 ===== */
+/* ===== 選單切換與職業／武器／皮膚選擇 /清空特效===== */
 function showMenu(id){document.querySelectorAll('.modal-overlay').forEach(el=>el.style.display='none');const el=document.getElementById(id);if(el)el.style.display='flex'}
 function renderChoices(){document.getElementById('classChoices').innerHTML=classes.map(c=>`<button class="choice-card ${classId===c.id?'selected':''}" data-job="${c.id}"><strong>${c.name}</strong><small>${c.desc}</small></button>`).join('');document.getElementById('weaponChoices').innerHTML=weapons.map(w=>`<button class="weapon-card ${weaponId===w.id?'selected':''}" data-weapon="${w.id}"><strong>${w.name}</strong><small>${w.desc}<br>傷害 x${w.damage} · 攻擊距離 ${w.range} · 間隔 ${w.cooldown} 幀</small></button>`).join('');document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{classId=b.dataset.job;renderChoices()});document.querySelectorAll('[data-weapon]').forEach(b=>b.onclick=()=>{weaponId=b.dataset.weapon;renderChoices()})}
 function renderSkins(){document.getElementById('skinChoices').innerHTML=skinList.map(s=>`<button class="skin-card ${currentSkinId===s.id?'selected':''}" data-skin="${s.id}">${s.id==='summer_skin'?'<img class="skin-preview" src="'+summerSkinImg.src+'" alt="夏日皮膚預覽">':'<span class="skin-preview" style="height:90px;display:grid;place-items:center;font-size:42px">🥔</span>'}<strong>${s.name}</strong><small>${s.desc}</small></button>`).join('');document.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{currentSkinId=b.dataset.skin;saveSelectedSkin();renderSkins()})}
+function initWave(){
+  player.x=canvas.width/2; player.y=canvas.height/2;
+  enemies=[]; bullets=[]; materials=[]; particles=[]; damageNumbers=[]; slashes=[]; 
+  lightningBeams=[]; eliteFlashes=[]; // 【新增這行】清空特效
+  waveTimer=Math.min(40,15+wave*5); enemySpawnCounter=0; gameState='PLAYING';
+  startInvulnerability();
+  if(wave%5===0)spawnEnemy('boss');
+  if(wave>=3&&Math.random()<.3)spawnEnemy('elite');
+  startTimer(); saveGame();
+}
 
 /* ===== 商店道具資料：每個 apply 函式負責套用該道具效果 ===== */
 const itemPool=[
