@@ -42,7 +42,7 @@
 /* ===== 常數與職業／武器資料 ===== */
 const SAVE_KEY='spaceSpudArenaSaveV1',SETTINGS_KEY='spaceSpudSettingsV1',SKIN_KEY='spaceSpudSkinV1',SHOP_REROLL_BASE_COST=10,SHOP_REROLL_COST_STEP=10,TRANSITION_INVULNERABILITY_FRAMES=6,REVIVE_INVULNERABILITY_FRAMES=6,MAX_DEFENSE_RATE=.999,PLAYER_SPEED_CAP_MAX=40;
 const classes=[{id:'berserker',name:'狂戰士',desc:'近戰傷害 +35%，暴擊傷害 +35%。',melee:1.35,range:1,crit:0,critDamage:.35,summon:1},{id:'archer',name:'弓箭手',desc:'遠程傷害 +25%，射程 +25%。',melee:1,range:1.25,crit:0,critDamage:0,summon:1},{id:'summoner',name:'召喚師',desc:'召喚與魔法傷害 +80%，遠程魔彈額外攻擊。',melee:1,range:1,summon:1.8,crit:0,critDamage:0}];
-const weapons=[{id:'knife',name:'刀',desc:'短距離、高頻率。',damage:1.25,range:110,cooldown:24,speed:14,kind:'melee',projectile:4,shape:'slash'},{id:'sword',name:'劍',desc:'近中距離，均衡輸出。',damage:1.15,range:150,cooldown:30,speed:13,kind:'melee',projectile:5,shape:'slash'},{id:'halberd',name:'長戟',desc:'長距離斬擊，打擊範圍大。',damage:1.55,range:200,cooldown:48,speed:12,kind:'melee',projectile:6,shape:'slash'},{id:'bow',name:'弓',desc:'快速箭矢。',damage:1.05,range:320,cooldown:38,speed:16,kind:'ranged',projectile:4,shape:'arrow'},{id:'crossbow',name:'十字弩',desc:'高傷害穿透。',damage:1.65,range:290,cooldown:55,speed:18,kind:'ranged',projectile:5,shape:'bolt'},{id:'cannon',name:'炮',desc:'重型爆炸砲彈。',damage:2.2,range:300,cooldown:72,speed:11,kind:'ranged',projectile:8,shape:'orb',splash:45}];
+const weapons=[{id:'knife',name:'🔪刀',desc:'短距離、高頻率。',damage:1.25,range:110,cooldown:24,speed:14,kind:'melee',projectile:4,shape:'slash'},{id:'sword',name:'🗡️劍',desc:'近中距離，均衡輸出。',damage:1.15,range:150,cooldown:30,speed:13,kind:'melee',projectile:5,shape:'slash'},{id:'halberd',name:'🦽長戟',desc:'長距離斬擊，打擊範圍大。',damage:1.55,range:200,cooldown:48,speed:12,kind:'melee',projectile:6,shape:'slash'},{id:'bow',name:'🏹弓',desc:'快速箭矢。',damage:1.05,range:320,cooldown:38,speed:16,kind:'ranged',projectile:4,shape:'arrow'},{id:'crossbow',name:'🏹🏹十字弩',desc:'高傷害穿透。',damage:1.65,range:290,cooldown:55,speed:18,kind:'ranged',projectile:5,shape:'bolt'},{id:'cannon',name:'💣炮',desc:'重型爆炸砲彈。',damage:2.2,range:300,cooldown:72,speed:11,kind:'ranged',projectile:8,shape:'orb',splash:45}];
 
 /* ===== 皮膚系統 ===== */
 const skinList=[{id:'default',name:'預設馬鈴薯',desc:'原本的經典馬鈴薯外觀。'},{id:'summer_skin',name:'夏日海灘',desc:'紅髮夏日造型，附水花斬擊、移動浪花與海藍箭矢。'}];
@@ -79,13 +79,13 @@ const itemPool=[
 {id:'dodge_glove',title:'輕盈手套',desc:'閃避機率 +5%（最高 99.9%）。',price:35,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.05)},
 {id:'dodge_cloak',title:'影子斗篷',desc:'閃避機率 +10%（最高 99.9%）。',price:55,apply:()=>player.dodgeChance=Math.min(MAX_DEFENSE_RATE,player.dodgeChance+.1)},
 {id:'gun',title:'強化彈藥',desc:'攻擊傷害提升 12 點。',price:30,apply:()=>player.damage+=12},
-{id:'truth',title:'真理',desc:'每次取得，所有最終造成的傷害增加 100%。',price:120,apply:()=>{player.truthLevel=(player.truthLevel||0)+1;player.truthUnlocked=true}},
-{id:'speed',title:'跑鞋',desc:'移動速度提升 20%。',price:25,apply:()=>{player.speed*=1.2;player.speedCap=Math.max(player.speedCap,player.speed)}},
+{id:'truth',title:'🔥真理🔥',desc:'每次取得，所有最終造成的傷害增加 100%。',price:120,apply:()=>{player.truthLevel=(player.truthLevel||0)+1;player.truthUnlocked=true}},
+{id:'speed',title:'👟跑鞋',desc:'移動速度提升 20%。',price:25,apply:()=>{player.speed*=1.2;player.speedCap=Math.max(player.speedCap,player.speed)}},
 {id:'attack',title:'快速連射',desc:'攻擊間隔減少 10%。',price:35,apply:()=>player.attackSpeed*=.9},
 {id:'vampire',title:'吸血之刃',desc:'每次命中恢復 0.2 生命。',price:40,apply:()=>player.vampire+=.2},
-{id:'maxhp',title:'生命補給',desc:'最大生命與目前生命 +35。',price:30,apply:()=>{player.maxHp+=35;player.hp+=35}},
+{id:'maxhp',title:'🫀生命補給',desc:'最大生命與目前生命 +35。',price:30,apply:()=>{player.maxHp+=35;player.hp+=35}},
 {id:'regen',title:'修復藥劑',desc:'每秒回復 1.5 生命。',price:35,apply:()=>player.hpRegen+=1.5},
-{id:'armor',title:'護盾模組',desc:'防禦 +10%（最高 99.9%）。',price:45,apply:()=>player.armor=Math.min(MAX_DEFENSE_RATE,player.armor+.1)},
+{id:'armor',title:'🛡️護盾模組',desc:'防禦 +10%（最高 99.9%）。',price:45,apply:()=>player.armor=Math.min(MAX_DEFENSE_RATE,player.armor+.1)},
 {id:'crit',title:'會心瞄準器',desc:'暴擊率 +10%。',price:45,apply:()=>player.critChance=Math.min(.8,player.critChance+.1)},
 {id:'magnet',title:'磁力腰帶',desc:'吸收範圍 +20。',price:35,apply:()=>player.attractionRange+=20},
 {id:'summon',title:'元素契約',desc:'召喚傷害 +35%。',price:50,apply:()=>player.summonDamage*=1.35},
