@@ -1,4 +1,4 @@
-當前為11月7日下午11:09更新版本
+當前為11月7日下午10:14更新版本
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -25,34 +25,16 @@
 <!-- 遊戲畫布與 HUD -->
 <canvas id="gameCanvas"></canvas>
 <div class="low-health-vignette" id="lowHealthVignette"></div>
-<div id="ui-layer"><div class="hud-top"><div class="hud-panel">
-<div>波次：<span id="hud-wave">1</span></div>
-<div>生命：<span id="hud-hp">100/100</span></div>
-<div>金幣：<span id="hud-gold">50</span></div>
-<div>時間：<span id="hud-timer">30s</span></div>
-</div><button class="btn-pause" id="pauseBtn">⏸</button></div></div>
-  
+<div id="ui-layer"><div class="hud-top"><div class="hud-panel"><div>波次：<span id="hud-wave">1</span></div><div>生命：<span id="hud-hp">100/100</span></div><div>金幣：<span id="hud-gold">15</span></div><div>時間：<span id="hud-timer">30s</span></div></div><button class="btn-pause" id="pauseBtn">⏸</button></div></div>
 <!-- 手機觸控搖桿 -->
 <div class="controls-layer" id="controlsLayer"><div class="stick" id="joystickBase"><id id="joystickThumb"></id></div></div>
 <!-- 開始與配置選單 -->
-<div class="modal-overlay" id="startMenu"><div class="modal-title">馬鈴薯登神之路</div>
-<div class="modal-subtitle">v1.67</div>
-<div class="menu-buttons"><button class="btn-menu" id="newGameBtn">開始戰鬥</button>
-<button class="btn-menu secondary" id="continueGameBtn" hidden>繼續戰鬥</button>
-<button class="btn-menu secondary" id="openSkinsBtn">角色皮膚</button>
-<button class="btn-menu secondary" id="openSettingsBtn">設定</button></div></div>
-<div class="modal-overlay" id="loadoutMenu" style="display:none">
-<div class="modal-title">選擇你的戰鬥配置</div>
-<div class="modal-subtitle">選擇職業與武器後進入戰鬥</div>
-<strong>職業</strong><div class="choice-grid" id="classChoices"></div>
-<strong>武器</strong><div class="weapon-grid" id="weaponChoices"></div>
-<div class="menu-buttons"><button class="btn-menu" id="beginBattleBtn">開始戰鬥</button>
-<button class="btn-menu secondary" id="loadoutBackBtn">返回</button></div></div>
-  
+<div class="modal-overlay" id="startMenu"><div class="modal-title">馬鈴薯深空戰記</div><div class="modal-subtitle">SPACE SPUD: ARENA SURVIVAL</div><div class="menu-buttons"><button class="btn-menu" id="newGameBtn">開始戰鬥</button><button class="btn-menu secondary" id="continueGameBtn" hidden>繼續戰鬥</button><button class="btn-menu secondary" id="openSkinsBtn">角色皮膚</button><button class="btn-menu secondary" id="openSettingsBtn">設定</button></div></div>
+<div class="modal-overlay" id="loadoutMenu" style="display:none"><div class="modal-title">選擇你的戰鬥配置</div><div class="modal-subtitle">選擇職業與武器後進入戰鬥</div><strong>職業</strong><div class="choice-grid" id="classChoices"></div><strong>武器</strong><div class="weapon-grid" id="weaponChoices"></div><div class="menu-buttons"><button class="btn-menu" id="beginBattleBtn">開始戰鬥</button><button class="btn-menu secondary" id="loadoutBackBtn">返回</button></div></div>
 <!-- 皮膚選擇 UI -->
 <div class="modal-overlay" id="skinMenu" style="display:none"><div class="modal-title">皮膚選擇</div><div class="modal-subtitle">切換角色的外觀與專屬特效；選擇會自動儲存</div><div class="skin-grid" id="skinChoices"></div><div class="menu-buttons"><button class="btn-menu secondary" id="skinBackBtn">返回</button></div></div>
 <!-- 設定、暫停、商店與結算選單 -->
-<div class="modal-overlay" id="settingsMenu" style="display:none"><div class="modal-title">遊戲設定</div><div class="modal-subtitle">設定會自動儲存在此瀏覽器</div><label class="setting"><span>音效開關</span><input type="checkbox" id="soundToggle"></label><label class="setting"><span>音量</span><input type="range" id="volumeSlider" min="0" max="100"><span id="volumeText">65%</span></label><label class="setting"><span>特效強度</span><input type="range" id="fxSlider" min="25" max="150"><span id="fxText">100%</span></label><label class="setting"><span>速度上限</span><input type="number" id="speedCapInput" min="0" max="40" step="0.1"><span id="speedCapText">4.0</span></label><label class="setting"><span>當前速度</span><input type="number" id="speedValueInput" min="0" max="40" step="0.1"><span id="speedValueText">4.0</span></label><div class="menu-buttons"><button class="btn-menu secondary" id="settingsBackBtn">返回</button></div></div>
+<div class="modal-overlay" id="settingsMenu" style="display:none"><div class="modal-title">遊戲設定</div><div class="modal-subtitle">設定會自動儲存在此瀏覽器</div><label class="setting"><span>音效開關</span><input type="checkbox" id="soundToggle"></label><label class="setting"><span>音量</span><input type="range" id="volumeSlider" min="0" max="100"><span id="volumeText">65%</span></label><label class="setting"><span>特效強度</span><input type="range" id="fxSlider" min="25" max="150"><span id="fxText">100%</span></label></label><label class="setting"><span>當前速度</span><input type="number" id="speedValueInput" min="0" max="40" step="0.1"><span id="speedValueText">4.0</span></label><div class="menu-buttons"><button class="btn-menu secondary" id="settingsBackBtn">返回</button></div></div>
 <div class="modal-overlay" id="pauseMenu" style="display:none"><div class="modal-title">遊戲暫停</div><div class="modal-subtitle">角色能力與對局收益（分項整理）</div><div class="stats-grid" id="statsGrid"></div><div class="menu-buttons"><button class="btn-menu" id="resumeBtn">返回戰鬥</button><button class="btn-menu secondary" id="pauseSettingsBtn">設定</button><button class="btn-menu secondary" id="saveExitBtn">離開</button></div></div>
 <div class="modal-overlay" id="shopMenu" style="display:none"><div class="modal-title">戰利品商店 (SHOP)</div><div class="modal-subtitle">購買道具強化你的馬鈴薯！</div>
 <div style="color:#fc0;font-size:16px;font-weight:bold;margin:4px 0 10px;">擁有金幣：<span id="shopGold">0</span></div>
@@ -123,10 +105,10 @@ function makeEnemy(type, x, y) {
   const boss = type === 'boss', 
         elite = type === 'elite';
         
-  const powerFactor = wave >= 15 ? Math.pow(wave, 2.2) : Math.max(1, wave * 0.5);
+  const powerFactor = wave >= 11 ? Math.pow(wave, wave) : Math.max(1, wave * 0.5);
   const hpScale = powerFactor,
         damageScale = powerFactor * 0.7, 
-        speedScale = wave >= 15 ? 1 + (wave - 15) * 0.015 : 1, 
+        speedScale = wave >= 11 ? 1 + (wave - 15) * 0.015 : 1, 
         radiusBoost = wave >= 10 ? 1 + (wave - 10) * .04 : 1;
         
   const hp = (boss ? 1800 + wave * 260 : elite ? 260 + wave * 85 : 35 + wave * 18) * hpScale,
@@ -144,7 +126,7 @@ function makeEnemy(type, x, y) {
 }
 function spawnEnemy(type='normal'){const a=Math.random()*Math.PI*2,d=Math.max(canvas.width,canvas.height)/2+70;enemies.push(makeEnemy(type,player.x+Math.cos(a)*d,player.y+Math.sin(a)*d))}
 /* ===== 波次、計時與遊戲流程 ===== */
-function initWave(){player.x=canvas.width/2;player.y=canvas.height/2;enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];waveTimer=Math.min(40,15+wave*5);enemySpawnCounter=0;gameState='PLAYING';startInvulnerability();if(wave%5===0)spawnEnemy('boss');if(wave>=3&&Math.random()<.3)spawnEnemy('elite');startTimer();saveGame()}
+function initWave(){player.x=canvas.width/2;player.y=canvas.height/2;enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];waveTimer=Math.min(30,15+wave*5);enemySpawnCounter=0;gameState='PLAYING';startInvulnerability();if(wave%5===0)spawnEnemy('boss');if(wave>=3&&Math.random()<.3)spawnEnemy('elite');startTimer();saveGame()}
 function startTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(gameState!=='PLAYING')return;waveTimer=Math.max(0,waveTimer-1);if(player.hpRegen>0&&player.hp<player.maxHp){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+player.hpRegen);const healed=Math.round(player.hp-before);if(healed>0)addDamageNumber(player.x,player.y-30,`+${healed}`,'#35e58a')}if(waveTimer<=0){clearInterval(timerInterval);triggerShop()}},1000)}
 function startGame(){initAudio();try{localStorage.removeItem(SAVE_KEY)}catch(e){}wave=1;kills=0;shootCounter=0;enemySpawnCounter=0;summonCounter=0;shopRerollCount=0;pendingPetUpgrades=0;player=newPlayer();enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];skillFrame=0;droneCooldowns=[];clampPlayerSpeed();initWave();showMenu('none');updateStatsDisplay();updateHUD()}
 function triggerShop(){
@@ -412,7 +394,7 @@ for(let i=eliteFlashes.length-1;i>=0;i--){
 }
 // 更新 Boss 圓形攻擊特效生命週期
 for(let i=bossCircles.length-1;i>=0;i--){
-  bossCircles[i].life-=0.08;
+  bossCircles[i].life-=0.02;
   if(bossCircles[i].life<=0)bossCircles.splice(i,1);
 }
 for(let i=enemies.length-1;i>=0;i--){
@@ -441,14 +423,14 @@ for(let i=enemies.length-1;i>=0;i--){
   }else if(e.type==='boss'){
     if(e.cooldown>0)e.cooldown--;
     if(!e.attack&&d<=500&&e.cooldown<=0){
-      e.attack={targetX:player.x, targetY:player.y, radius:110, elapsed:0, duration:45};
-      bossCircles.push({x:player.x, y:player.y, radius:110, elapsed:0, duration:45, life:1, isExploding:false});
+      e.attack={targetX:player.x, targetY:player.y, radius:36, elapsed:0, duration:120};
+      bossCircles.push({x:player.x, y:player.y, radius:36, elapsed:0, duration:120, life:1, isExploding:false});
     }
     e.x+=(player.x-e.x)/d*e.speed;e.y+=(player.y-e.y)/d*e.speed;
     if(e.attack){
       e.attack.elapsed++;
       if(e.attack.elapsed>=e.attack.duration){
-        bossCircles.push({x:e.attack.targetX, y:e.attack.targetY, radius:e.attack.radius, elapsed:0, duration:15, life:1, isExploding:true});
+        bossCircles.push({x:e.attack.targetX, y:e.attack.targetY, radius:e.attack.radius, elapsed:0, duration:30, life:1, isExploding:true});
         const distToPlayer=Math.hypot(player.x-e.attack.targetX, player.y-e.attack.targetY);
         if(distToPlayer<=e.attack.radius+player.radius){
           damagePlayer(e.damage*2, e);
