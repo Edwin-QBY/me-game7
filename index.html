@@ -103,8 +103,8 @@ function makeEnemy(type, x, y) {
   const boss = type === 'boss', 
         elite = type === 'elite';
         
-  // 前15關基準倍率降低為原本的三分之一 (原本 max(1, wave * 0.5) 變成三分之一)
-  const powerFactor = wave >= 15 ? Math.pow(wave, 2.2) : Math.max(0.33, (wave * 0.5) / 3);
+  // 前15關基準倍率降低
+  const powerFactor = wave >= 15 ? Math.pow(wave, 3.5) : Math.max(0.33, (wave * 0.5);
   
   const hpScale = powerFactor,
         damageScale = powerFactor * 0.7, 
