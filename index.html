@@ -276,9 +276,12 @@ function playSound(type) {
   } catch (e) {}
 }
 
+// 【優化】限制最大 dpr 為 1.5，避免高解析度平板顯卡渲染過載，並重置 Transform
 function resizeCanvas() {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  canvas.width = Math.floor(innerWidth * dpr);
+  canvas.height = Math.floor(innerHeight * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -289,7 +292,7 @@ let shootCounter = 0, enemySpawnCounter = 0, shopChoiceIds = [], purchasedItemId
 let classId = 'archer', weaponId = 'bow', summonCounter = 0, pendingPetUpgrades = 0;
 
 const newPlayer = () => ({
-  x: canvas.width / 2, y: canvas.height / 2, radius: 18,
+  x: innerWidth / 2, y: innerHeight / 2, radius: 18,
   speed: 4, speedCap: 4, maxHp: 100, hp: 100, hpRegen: 0,
   armor: 0, gold: 15, attackSpeed: 32, damage: 20, range: 240,
   vampire: 0, critChance: .15, critDamage: 1.5, dodgeChance: 0,
@@ -365,12 +368,12 @@ const itemPool = [
   { id: 'revive', title: '緊急復活核心', desc: '增加一次復活機會，復活時恢復 35% 生命並獲得 1 秒無敵。', price: 65, apply: () => player.revives++ },
   { id: 'reflect', title: '反傷裝甲', desc: '受到傷害時反彈 35% 實際傷害。', price: 50, apply: () => player.reflect = Math.min(.9, player.reflect + .35) },
   { id: 'drone', title: '環繞無人機', desc: '增加一架環繞玩家、會自動攻擊敵人的無人機。', price: 60, apply: () => player.droneCount = (player.droneCount || 0) + 1 },
-  { id: 'turret', title: '固定炮台', desc: '在地圖隨機位置產生固定炮台，發射炮彈或雷電。', price: 75, apply: () => { player.turretCount = (player.turretCount || 0) + 1; turrets.push({ x: clamp(Math.random() * canvas.width, 25, canvas.width - 25), y: clamp(Math.random() * canvas.height, 25, canvas.height - 25), cooldown: 30, lightning: false }); } }
+  { id: 'turret', title: '固定炮台', desc: '在地圖隨機位置產生固定炮台，發射炮彈或雷電。', price: 75, apply: () => { player.turretCount = (player.turretCount || 0) + 1; turrets.push({ x: clamp(Math.random() * innerWidth, 25, innerWidth - 25), y: clamp(Math.random() * innerHeight, 25, innerHeight - 25), cooldown: 30, lightning: false }); } }
 ];
 
 /* ==================== 5. 核心工具與輔助函式 ==================== */
 function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
-function enemyInView(e) { return e.x >= 0 && e.x <= canvas.width && e.y >= 0 && e.y <= canvas.height; }
+function enemyInView(e) { return e.x >= 0 && e.x <= innerWidth && e.y >= 0 && e.y <= innerHeight; }
 function nearestEnemy(x, y, r) {
   let t = null, b = r;
   for (const e of enemies) {
@@ -425,13 +428,13 @@ function makeEnemy(type, x, y) {
 }
 
 function spawnEnemy(type = 'normal') {
-  const a = Math.random() * Math.PI * 2, d = Math.max(canvas.width, canvas.height) / 2 + 70;
+  const a = Math.random() * Math.PI * 2, d = Math.max(innerWidth, innerHeight) / 2 + 70;
   enemies.push(makeEnemy(type, player.x + Math.cos(a) * d, player.y + Math.sin(a) * d));
 }
 
 /* ==================== 6. 遊戲流程控制 (Wave & Shop) ==================== */
 function initWave() {
-  player.x = canvas.width / 2; player.y = canvas.height / 2;
+  player.x = innerWidth / 2; player.y = innerHeight / 2;
   enemies = []; bullets = []; materials = []; particles = []; damageNumbers = [];
   slashes = []; lightningBeams = []; eliteFlashes = []; bossCircles = [];
   waveTimer = Math.min(30, 15 + wave * 5); enemySpawnCounter = 0;
@@ -738,10 +741,16 @@ function drawPlayer() {
 }
 
 function draw() {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.restore();
+
   ctx.strokeStyle = '#ffffff0a'; ctx.lineWidth = 1;
-  for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-  for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+  for (let x = 0; x < innerWidth; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, innerHeight); ctx.stroke(); }
+  for (let y = 0; y < innerHeight; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(innerWidth, y); ctx.stroke(); }
   
   // 繪製近戰揮擊特效
   for (const s of slashes) {
@@ -836,11 +845,11 @@ function draw() {
 
   const boss = enemies.find(e => e.type === 'boss' && enemyInView(e));
   if (boss) {
-    const w = Math.min(canvas.width - 40, 900), x = (canvas.width - w) / 2, y = 110;
+    const w = Math.min(innerWidth - 40, 900), x = (innerWidth - w) / 2, y = 110;
     ctx.fillStyle = '#21132a'; ctx.fillRect(x, y, w, 13);
     ctx.fillStyle = '#bd55f5'; ctx.fillRect(x, y, w * clamp(boss.hp / boss.maxHp, 0, 1), 13);
     ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.textAlign = 'center';
-    ctx.fillText('BOSS — 馬鈴薯深空戰記', canvas.width / 2, y - 5);
+    ctx.fillText('BOSS — 馬鈴薯深空戰記', innerWidth / 2, y - 5);
   }
 }
 
@@ -908,8 +917,8 @@ function update() {
   
   if (mx || my) {
     const l = Math.hypot(mx, my) || 1, moveSpeed = clamp(player.speed, 0, player.speedCap);
-    player.x = clamp(player.x + mx / l * moveSpeed, player.radius, canvas.width - player.radius);
-    player.y = clamp(player.y + my / l * moveSpeed, player.radius, canvas.height - player.radius);
+    player.x = clamp(player.x + mx / l * moveSpeed, player.radius, innerWidth - player.radius);
+    player.y = clamp(player.y + my / l * moveSpeed, player.radius, innerHeight - player.radius);
     if (mx !== 0) player.facingRight = mx > 0;
     if (currentSkinId === 'summer_skin' && Math.random() < .45) {
       const waterColor = Math.random() < .6 ? '#90e0ef' : '#0077b6';
@@ -1028,7 +1037,7 @@ function update() {
         break;
       }
     }
-    if (hit || b.life <= 0 || b.x < -50 || b.x > canvas.width + 50 || b.y < -50 || b.y > canvas.height + 50) bullets.splice(i, 1);
+    if (hit || b.life <= 0 || b.x < -50 || b.x > innerWidth + 50 || b.y < -50 || b.y > innerHeight + 50) bullets.splice(i, 1);
   }
 
   // 特效與持續時間更新
@@ -1088,7 +1097,7 @@ function update() {
       const gold = e.type === 'boss' ? 50 : e.type === 'elite' ? 40 : 3;
       player.gold += Math.round(gold * (1 + player.incomeBonus));
       spawnParticles(e.x, e.y, e.color, e.type === 'boss' ? 35 : 15, 1.6);
-      materials.push({ x: clamp(e.x, 5, Math.max(5, canvas.width - 5)), y: clamp(e.y, 5, Math.max(5, canvas.height - 5)), value: Math.max(1, Math.round((e.type === 'boss' ? 60 : e.type === 'elite' ? 48 : 3) * (1 + wave * .08) * (1 + player.incomeBonus))) });
+      materials.push({ x: clamp(e.x, 5, Math.max(5, innerWidth - 5)), y: clamp(e.y, 5, Math.max(5, innerHeight - 5)), value: Math.max(1, Math.round((e.type === 'boss' ? 60 : e.type === 'elite' ? 48 : 3) * (1 + wave * .08) * (1 + player.incomeBonus))) });
       enemies.splice(i, 1);
     }
   }
@@ -1096,7 +1105,7 @@ function update() {
   // 金幣與掉落物吸收邏輯
   for (let i = materials.length - 1; i >= 0; i--) {
     const m = materials[i];
-    if (m.x < 0 || m.x > canvas.width || m.y < 0 || m.y > canvas.height) { m.x = clamp(m.x, 5, Math.max(5, canvas.width - 5)); m.y = clamp(m.y, 5, Math.max(5, canvas.height - 5)); }
+    if (m.x < 0 || m.x > innerWidth || m.y < 0 || m.y > innerHeight) { m.x = clamp(m.x, 5, Math.max(5, innerWidth - 5)); m.y = clamp(m.y, 5, Math.max(5, innerHeight - 5)); }
     const d = Math.hypot(player.x - m.x, player.y - m.y);
     if (d < player.attractionRange) {
       const a = Math.atan2(player.y - m.y, player.x - m.x), v = Math.min(9, 4 + (player.attractionRange - d) * .05);
@@ -1204,9 +1213,22 @@ showMenu('startMenu');
 renderChoices();
 syncSettings();
 
-// 遊戲主迴圈
-requestAnimationFrame(function loop() {
-  update();
+// 【優化】主遊戲迴圈（固定 60 FPS 步進，解決平板高更新率或降幀時慢動作問題）
+let lastFrameTime = performance.now();
+const TARGET_FPS = 60;
+const FRAME_TIME = 1000 / TARGET_FPS;
+
+requestAnimationFrame(function loop(currentTime) {
+  const deltaTime = currentTime - lastFrameTime;
+  
+  if (deltaTime >= FRAME_TIME) {
+    const updates = Math.min(Math.floor(deltaTime / FRAME_TIME), 3);
+    for (let i = 0; i < updates; i++) {
+      update();
+    }
+    lastFrameTime = currentTime - (deltaTime % FRAME_TIME);
+  }
+  
   draw();
   requestAnimationFrame(loop);
 });
