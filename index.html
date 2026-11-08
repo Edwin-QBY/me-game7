@@ -157,86 +157,104 @@ function renderDetailedSummerSkin(){
 renderDetailedSummerSkin();
 const summerSkinImg=new Image(); summerSkinImg.src=paperCanvas.toDataURL();
 
-// 深海女僕皮膚 (全新重寫版)
+// 深海女僕皮膚 (最終精修版)
 function renderMaidSkin(){
   pctx.clearRect(0,0,64,90);
   
-  // 1. 背景長髮 (深藍色基底)
-  pctx.fillStyle='#1e2a4a';
-  pctx.beginPath(); pctx.moveTo(20,30); pctx.quadraticCurveTo(5,60,15,85); pctx.lineTo(49,85); pctx.quadraticCurveTo(59,60,44,30); pctx.fill();
-
-  // 2. 鯨魚尾巴 (右後方)
+  // 1. 後髮與尾巴 (背景)
+  pctx.fillStyle='#1e2a4a'; // 深藍
+  pctx.beginPath(); pctx.ellipse(32,45,18,28,0,0,Math.PI*2); pctx.fill(); // 後髮
+  // 鯨魚尾巴
   pctx.fillStyle='#2b3b6b';
-  pctx.beginPath(); pctx.moveTo(45,70); pctx.quadraticCurveTo(60,75,55,85); pctx.quadraticCurveTo(50,80,45,75); pctx.fill();
-  pctx.fillStyle='#4ea8de';
-  pctx.beginPath(); pctx.moveTo(48,72); pctx.quadraticCurveTo(58,76,54,83); pctx.quadraticCurveTo(51,79,48,75); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(45,65); pctx.quadraticCurveTo(60,70,55,85); pctx.quadraticCurveTo(48,78,45,75); pctx.fill();
+  pctx.fillStyle='#4ea8de'; // 尾巴高光
+  pctx.beginPath(); pctx.moveTo(48,68); pctx.quadraticCurveTo(57,72,53,82); pctx.quadraticCurveTo(50,76,48,74); pctx.fill();
 
-  // 3. 裙擺與腿
-  // 內裙 (淺藍)
-  pctx.fillStyle='#90e0ef'; pctx.beginPath(); pctx.moveTo(20,60); pctx.lineTo(44,60); pctx.lineTo(48,82); pctx.lineTo(16,82); pctx.fill();
+  // 2. 裙擺與腿
+  // 內裙 (水藍百褶)
+  pctx.fillStyle='#90e0ef'; pctx.beginPath(); pctx.moveTo(20,60); pctx.lineTo(44,60); pctx.lineTo(48,80); pctx.lineTo(16,80); pctx.fill();
   // 外裙 (深藍)
-  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.moveTo(18,60); pctx.lineTo(46,60); pctx.lineTo(52,78); pctx.lineTo(12,78); pctx.fill();
-  // 裙子蕾絲邊
+  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.moveTo(16,60); pctx.lineTo(48,60); pctx.lineTo(52,75); pctx.lineTo(12,75); pctx.fill();
+  // 裙子白蕾絲
   pctx.fillStyle='#ffffff';
-  for(let i=0;i<7;i++){ pctx.beginPath(); pctx.arc(15+i*5,78,2.5,0,Math.PI); pctx.fill(); }
+  for(let i=0;i<7;i++){ pctx.beginPath(); pctx.arc(15+i*5.3,75,2.5,0,Math.PI); pctx.fill(); }
   // 腿 (白絲襪)
-  pctx.fillStyle='#ffffff'; pctx.fillRect(23,78,5,8); pctx.fillRect(36,78,5,8);
-  // 鞋子
-  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.ellipse(25.5,87,4,2,0,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.ellipse(38.5,87,4,2,0,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#ffffff'; pctx.fillRect(24,80,5,8); pctx.fillRect(35,80,5,8);
+  // 鞋子 (黑皮鞋)
+  pctx.fillStyle='#101218'; pctx.beginPath(); pctx.ellipse(26.5,88,4,2,0,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.ellipse(37.5,88,4,2,0,0,Math.PI*2); pctx.fill();
 
-  // 4. 身體與女僕裝
-  // 上衣 (深藍)
-  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.moveTo(22,40); pctx.lineTo(42,40); pctx.lineTo(46,60); pctx.lineTo(18,60); pctx.fill();
+  // 3. 身體與女僕裝
+  // 上半身深藍 (泡泡袖)
+  pctx.fillStyle='#1e2a4a';
+  pctx.beginPath(); pctx.ellipse(20,45,6,10,0.2,0,Math.PI*2); pctx.fill(); // 左袖
+  pctx.beginPath(); pctx.ellipse(44,45,6,10,-0.2,0,Math.PI*2); pctx.fill(); // 右袖
+  pctx.fillRect(24,36,16,25); // 衣服本體
+  
   // 白色圍裙
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.moveTo(24,45); pctx.lineTo(40,45); pctx.lineTo(44,78); pctx.lineTo(20,78); pctx.fill();
-  // 圍裙下擺蕾絲
-  pctx.fillStyle='#ffffff';
-  for(let i=0;i<5;i++){ pctx.beginPath(); pctx.arc(21+i*5,78,2.5,0,Math.PI); pctx.fill(); }
-  // 鯨魚圖案
-  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(32,65,4,3,0,0,Math.PI*2); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(36,65); pctx.lineTo(39,63); pctx.lineTo(38,67); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(30,64.5,1,0,Math.PI*2); pctx.fill();
-  // 金色釦子
-  pctx.fillStyle='#ffd700'; pctx.fillRect(28,42,2,2); pctx.fillRect(34,42,2,2); pctx.fillRect(28,46,2,2); pctx.fillRect(34,46,2,2);
+  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.moveTo(26,38); pctx.lineTo(38,38); pctx.lineTo(42,75); pctx.lineTo(22,75); pctx.fill();
+  // 圍裙下蕾絲
+  for(let i=0;i<5;i++){ pctx.beginPath(); pctx.arc(23+i*4.5,75,2.5,0,Math.PI); pctx.fill(); }
+  // 圍裙上的鯨魚
+  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(32,58,5,3,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(37,58); pctx.lineTo(40,55); pctx.lineTo(39,61); pctx.fill();
+  pctx.fillStyle='#fff'; pctx.beginPath(); pctx.arc(29,57.5,1,0,Math.PI*2); pctx.fill(); // 鯨魚眼
 
-  // 5. 頭部
-  // 臉
-  pctx.fillStyle='#ffe0bd'; pctx.beginPath(); pctx.arc(32,28,10,0,Math.PI*2); pctx.fill();
-  // 眼睛 (超可愛藍眼)
-  pctx.fillStyle='#0a2a4a'; pctx.beginPath(); pctx.ellipse(27,29,2.5,3.5,0,0,Math.PI*2); pctx.fill();
-  pctx.beginPath(); pctx.ellipse(37,29,2.5,3.5,0,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(27,29.5,1.8,2.5,0,0,Math.PI*2); pctx.fill();
-  pctx.beginPath(); pctx.ellipse(37,29.5,1.8,2.5,0,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(26,28,0.8,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.arc(36,28,0.8,0,Math.PI*2); pctx.fill();
+  // 領口 (白) 與 金釦子
+  pctx.fillStyle='#ffffff'; pctx.fillRect(25,36,14,4);
+  pctx.fillStyle='#ffd700'; pctx.fillRect(26,42,2,2); pctx.fillRect(36,42,2,2); pctx.fillRect(26,46,2,2); pctx.fillRect(36,46,2,2);
+
+  // 4. 臉部
+  pctx.fillStyle='#ffe0bd'; pctx.beginPath(); pctx.arc(32,26,10,0,Math.PI*2); pctx.fill();
+  
   // 腮紅與嘴巴
-  pctx.fillStyle='rgba(255,143,163,0.6)'; pctx.beginPath(); pctx.arc(24,32,1.5,0,Math.PI*2); pctx.arc(40,32,1.5,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#ff8fa3'; pctx.beginPath(); pctx.arc(32,33,1,0,Math.PI); pctx.fill();
+  pctx.fillStyle='rgba(255,143,163,0.5)'; pctx.beginPath(); pctx.arc(24,30,2.5,0,Math.PI*2); pctx.arc(40,30,2.5,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#ff8fa3'; pctx.beginPath(); pctx.arc(32,31,1.5,0,Math.PI); pctx.fill();
 
-  // 6. 魚鰭耳朵
-  pctx.fillStyle='#90e0ef';
-  pctx.beginPath(); pctx.moveTo(22,26); pctx.lineTo(16,23); pctx.lineTo(19,29); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(42,26); pctx.lineTo(48,23); pctx.lineTo(45,29); pctx.fill();
-
-  // 7. 前髮與瀏海
-  pctx.fillStyle='#2b3b6b';
-  pctx.beginPath(); pctx.moveTo(22,28); pctx.quadraticCurveTo(32,18,42,28); pctx.quadraticCurveTo(37,32,32,25); pctx.quadraticCurveTo(27,32,22,28); pctx.fill();
-  // 兩側長髮
-  pctx.beginPath(); pctx.moveTo(22,28); pctx.quadraticCurveTo(15,50,20,70); pctx.quadraticCurveTo(25,50,26,35); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(42,28); pctx.quadraticCurveTo(49,50,44,70); pctx.quadraticCurveTo(39,50,38,35); pctx.fill();
-  // 頭髮高光
-  pctx.strokeStyle='#4ea8de'; pctx.lineWidth=1; pctx.beginPath(); pctx.moveTo(24,35); pctx.quadraticCurveTo(20,50,22,65); pctx.stroke();
-  pctx.beginPath(); pctx.moveTo(40,35); pctx.quadraticCurveTo(44,50,42,65); pctx.stroke();
-
-  // 8. 女僕頭飾 (蕾絲 + 蝴蝶結)
-  pctx.strokeStyle='#ffffff'; pctx.lineWidth=2; pctx.beginPath(); pctx.arc(32,18,10,Math.PI*1.1,Math.PI*1.9); pctx.stroke();
+  // 眼睛 (深藍眼眶、藍色瞳孔、白高光)
+  pctx.fillStyle='#0a2a4a';
+  pctx.beginPath(); pctx.ellipse(26,26,3,4,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.ellipse(38,26,3,4,0,0,Math.PI*2); pctx.fill();
   pctx.fillStyle='#4ea8de';
-  pctx.beginPath(); pctx.moveTo(42,15); pctx.lineTo(47,12); pctx.lineTo(46,18); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(42,15); pctx.lineTo(47,18); pctx.lineTo(46,12); pctx.fill();
+  pctx.beginPath(); pctx.ellipse(26,27,2,3,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.ellipse(38,27,2,3,0,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#ffffff';
+  pctx.beginPath(); pctx.arc(25,25,1,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.arc(37,25,1,0,Math.PI*2); pctx.fill();
 
-  // 9. 頭頂呆毛 (水滴狀)
-  pctx.fillStyle='#2b3b6b'; pctx.beginPath(); pctx.moveTo(32,18); pctx.quadraticCurveTo(28,8,35,6); pctx.quadraticCurveTo(34,12,32,18); pctx.fill();
+  // 5. 魚鰭耳 (水藍色)
+  pctx.fillStyle='#90e0ef';
+  pctx.beginPath(); pctx.moveTo(20,24); pctx.lineTo(14,20); pctx.lineTo(18,28); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(44,24); pctx.lineTo(50,20); pctx.lineTo(46,28); pctx.fill();
+
+  // 6. 前髮與鬢角 (深藍色)
+  pctx.fillStyle='#2b3b6b'; 
+  // 瀏海
+  pctx.beginPath(); pctx.moveTo(20,26); pctx.quadraticCurveTo(32,16,44,26); pctx.quadraticCurveTo(38,22,32,28); pctx.quadraticCurveTo(26,22,20,26); pctx.fill();
+  // 兩側鬢角
+  pctx.beginPath(); pctx.moveTo(22,24); pctx.quadraticCurveTo(18,40,22,50); pctx.quadraticCurveTo(26,40,26,30); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(42,24); pctx.quadraticCurveTo(46,40,42,50); pctx.quadraticCurveTo(38,40,38,30); pctx.fill();
+  // 頭髮高光 (水藍)
+  pctx.strokeStyle='#4ea8de'; pctx.lineWidth=1.5;
+  pctx.beginPath(); pctx.moveTo(24,28); pctx.quadraticCurveTo(22,38,24,45); pctx.stroke();
+  pctx.beginPath(); pctx.moveTo(40,28); pctx.quadraticCurveTo(42,38,40,45); pctx.stroke();
+
+  // 7. 女僕頭飾 (蕾絲帶 + 蝴蝶結)
+  pctx.fillStyle='#ffffff';
+  // 畫一排小圈圈當蕾絲，貼合頭部
+  for(let i=0;i<6;i++){ pctx.beginPath(); pctx.arc(22+i*4,16,2,0,Math.PI*2); pctx.fill(); }
+  pctx.fillRect(22,16,20,2); // 連接線
+  
+  // 藍色蝴蝶結 (右側)
+  pctx.fillStyle='#4ea8de';
+  pctx.beginPath(); pctx.moveTo(40,14); pctx.lineTo(46,10); pctx.lineTo(45,16); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(40,14); pctx.lineTo(46,18); pctx.lineTo(44,14); pctx.fill();
+  pctx.fillStyle='#fff'; pctx.beginPath(); pctx.arc(40,14,1.5,0,Math.PI*2); pctx.fill();
+
+  // 8. 呆毛 (細線)
+  pctx.strokeStyle='#2b3b6b'; pctx.lineWidth=2;
+  pctx.beginPath(); pctx.moveTo(32,14); pctx.bezierCurveTo(28,6,36,4,40,8); pctx.stroke();
 }
 renderMaidSkin();
+  
 const maidSkinImg=new Image(); maidSkinImg.src=paperCanvas.toDataURL();
 
 function saveSelectedSkin(){try{localStorage.setItem(SKIN_KEY,currentSkinId)}catch(e){}}
