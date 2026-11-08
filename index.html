@@ -130,96 +130,115 @@ const skinList=[
 ];
 let currentSkinId='default';try{const s=localStorage.getItem(SKIN_KEY);if(skinList.some(x=>x.id===s))currentSkinId=s}catch(e){}
 
+/* ===== 皮膚繪製 ===== */
 const paperCanvas=document.createElement('canvas');
-paperCanvas.width=128; paperCanvas.height=180;
+paperCanvas.width=64; paperCanvas.height=90;
 const pctx=paperCanvas.getContext('2d');
 
+// 夏日皮膚 (保持不變)
 function renderDetailedSummerSkin(){
-  pctx.clearRect(0,0,128,180);
-  pctx.fillStyle='#e63946';pctx.fillRect(36,52,56,64);
-  pctx.fillStyle='#ffe0bd';pctx.fillRect(48,96,12,50);pctx.fillRect(68,96,12,50);
-  pctx.strokeStyle='#2b6cb0';pctx.lineWidth=2.5;
-  pctx.beginPath();pctx.moveTo(48,112);pctx.lineTo(60,122);pctx.moveTo(60,122);pctx.lineTo(48,132);
-  pctx.moveTo(48,132);pctx.lineTo(60,142);pctx.moveTo(68,112);pctx.lineTo(80,122);
-  pctx.moveTo(80,122);pctx.lineTo(68,132);pctx.moveTo(68,132);pctx.lineTo(80,142);pctx.stroke();
-  pctx.fillStyle='#2b6cb0';pctx.fillRect(46,146,16,6);pctx.fillRect(66,146,16,6);
-  pctx.fillStyle='#ffe0bd';pctx.fillRect(46,68,36,32);
-  pctx.fillStyle='rgba(255,255,255,.75)';pctx.fillRect(36,72,10,24);pctx.fillRect(82,72,10,24);
-  pctx.fillStyle='#fff';pctx.fillRect(48,70,32,14);
-  pctx.fillStyle='#1a365d';pctx.fillRect(48,90,32,10);
-  pctx.fillStyle='#2b6cb0';pctx.beginPath();pctx.arc(60,76,4,0,Math.PI*2);pctx.arc(68,76,4,0,Math.PI*2);pctx.fill();pctx.fillRect(62,74,4,6);
-  pctx.fillStyle='#ffe0bd';pctx.beginPath();pctx.arc(64,48,22,0,Math.PI*2);pctx.fill();
-  pctx.fillStyle='#e63946';pctx.fillRect(42,28,44,22);pctx.fillRect(38,46,10,36);pctx.fillRect(80,46,10,36);
-  pctx.fillStyle='#1a365d';pctx.beginPath();pctx.arc(56,48,3.6,0,Math.PI*2);pctx.arc(72,48,3.6,0,Math.PI*2);pctx.fill();
-  pctx.fillStyle='#ffb703';pctx.beginPath();pctx.arc(64,18,9,0,Math.PI*2);pctx.fill();
-  pctx.fillStyle='#fb8500';pctx.beginPath();pctx.arc(70,20,3.6,0,Math.PI*2);pctx.fill();
-}
-function renderMaidSkin(){
-  pctx.clearRect(0,0,128,180);
-  // 背景長髮與尾巴
-  pctx.fillStyle='#2b3b6b'; pctx.beginPath(); pctx.moveTo(85,140); pctx.quadraticCurveTo(120,150,110,170); pctx.quadraticCurveTo(125,175,120,160); pctx.quadraticCurveTo(105,160,85,140); pctx.fill();
-  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.moveTo(88,142); pctx.quadraticCurveTo(115,152,108,165); pctx.quadraticCurveTo(112,168,112,158); pctx.quadraticCurveTo(100,155,88,142); pctx.fill();
-  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.moveTo(40,50); pctx.bezierCurveTo(10,80,10,140,30,170); pctx.bezierCurveTo(50,170,60,150,60,120); pctx.fill();
-  const hairGrad = pctx.createLinearGradient(0,50,50,180); hairGrad.addColorStop(0,'#2b3b6b'); hairGrad.addColorStop(1,'#00b4d8');
-  pctx.fillStyle=hairGrad; pctx.beginPath(); pctx.moveTo(45,50); pctx.bezierCurveTo(20,90,25,150,15,165); pctx.bezierCurveTo(40,160,55,130,55,100); pctx.fill();
-  // 腿部與鞋子
-  pctx.fillStyle='#ffffff'; pctx.fillRect(50,130,10,25); pctx.fillRect(68,130,10,25);
-  pctx.fillStyle='#e0e0e0'; pctx.fillRect(50,130,3,25); pctx.fillRect(68,130,3,25);
-  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.ellipse(55,158,8,4,0,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.ellipse(73,158,8,4,0,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(55,154,1.5,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.arc(73,154,1.5,0,Math.PI*2); pctx.fill();
-  // 裙擺
-  pctx.fillStyle='#90e0ef'; pctx.beginPath(); pctx.moveTo(35,90); pctx.lineTo(93,90); pctx.lineTo(105,140); pctx.lineTo(23,140); pctx.fill();
-  pctx.strokeStyle='#48cae4'; pctx.lineWidth=1.5; for(let i=0;i<5;i++){pctx.beginPath();pctx.moveTo(40+i*12,90);pctx.lineTo(30+i*16,138);pctx.stroke();}
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); for(let i=0;i<8;i++){pctx.arc(30+i*10,140,4,0,Math.PI);} pctx.fill();
-  const dressGrad = pctx.createLinearGradient(0,85,0,145); dressGrad.addColorStop(0,'#151c33'); dressGrad.addColorStop(1,'#1e2a4a');
-  pctx.fillStyle=dressGrad; pctx.beginPath(); pctx.moveTo(35,85); pctx.lineTo(93,85); pctx.lineTo(110,135); pctx.lineTo(18,135); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); for(let i=0;i<10;i++){pctx.arc(23+i*9.5,135,4.5,0,Math.PI);} pctx.fill();
-  pctx.strokeStyle='#d4af37'; pctx.lineWidth=1.5; pctx.beginPath(); pctx.moveTo(20,132); pctx.quadraticCurveTo(64,142,108,132); pctx.stroke();
-  pctx.fillStyle='#4ea8de';
-  pctx.beginPath(); pctx.moveTo(40,125); pctx.lineTo(35,120); pctx.lineTo(35,130); pctx.fill(); pctx.beginPath(); pctx.moveTo(40,125); pctx.lineTo(45,120); pctx.lineTo(45,130); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(88,125); pctx.lineTo(83,120); pctx.lineTo(83,130); pctx.fill(); pctx.beginPath(); pctx.moveTo(88,125); pctx.lineTo(93,120); pctx.lineTo(93,130); pctx.fill();
-  // 上半身與圍裙
-  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.moveTo(45,60); pctx.lineTo(83,60); pctx.lineTo(90,90); pctx.lineTo(38,90); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.moveTo(48,72); pctx.lineTo(80,72); pctx.lineTo(88,125); pctx.lineTo(40,125); pctx.fill();
-  pctx.fillStyle='#f0f4f8'; pctx.beginPath(); pctx.moveTo(48,72); pctx.lineTo(52,72); pctx.lineTo(44,125); pctx.lineTo(40,125); pctx.fill();
-  pctx.strokeStyle='#ffffff'; pctx.lineWidth=2; pctx.beginPath(); for(let i=0;i<6;i++){pctx.arc(42+i*8,125,4,0,Math.PI);} pctx.stroke();
-  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(64,100,8,5,0,0,Math.PI*2); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(70,100); pctx.lineTo(77,96); pctx.lineTo(75,104); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(60,99,1.5,0,Math.PI*2); pctx.fill();
-  pctx.strokeStyle='#90e0ef'; pctx.lineWidth=1; pctx.beginPath(); pctx.moveTo(64,94); pctx.quadraticCurveTo(62,88,58,90); pctx.stroke();
-  pctx.fillStyle='#ffd700'; for(let i=0;i<3;i++){ pctx.beginPath(); pctx.arc(58,62+i*6,1.5,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.arc(70,62+i*6,1.5,0,Math.PI*2); pctx.fill(); }
-  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.arc(64,60,3,0,Math.PI*2); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(64,60); pctx.lineTo(54,55); pctx.lineTo(54,65); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(64,60); pctx.lineTo(74,55); pctx.lineTo(74,65); pctx.fill();
-  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.ellipse(40,65,8,16,0.3,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.ellipse(88,65,8,16,-0.3,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.fillRect(36,80,8,4); pctx.fillRect(84,80,8,4);
-  // 頭部與五官
-  pctx.fillStyle='#ffe0bd'; pctx.beginPath(); pctx.arc(64,45,16,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='rgba(255,143,163,0.4)'; pctx.beginPath(); pctx.arc(52,48,4,0,Math.PI*2); pctx.arc(76,48,4,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#ff8fa3'; pctx.beginPath(); pctx.arc(64,52,3,0,Math.PI); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.fillRect(62,52,4,1.5);
-  pctx.fillStyle='#0a2a4a'; pctx.beginPath(); pctx.ellipse(54,45,4,6,0,0,Math.PI*2); pctx.fill(); pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(54,46,3,4,0,0,Math.PI*2); pctx.fill(); pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(53,43,1.5,0,Math.PI*2); pctx.arc(55,47,1,0,Math.PI*2); pctx.fill();
-  pctx.fillStyle='#0a2a4a'; pctx.beginPath(); pctx.ellipse(74,45,4,6,0,0,Math.PI*2); pctx.fill(); pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(74,46,3,4,0,0,Math.PI*2); pctx.fill(); pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(73,43,1.5,0,Math.PI*2); pctx.arc(75,47,1,0,Math.PI*2); pctx.fill();
-  // 魚鰭耳朵
-  pctx.fillStyle='#2b3b6b'; pctx.beginPath(); pctx.moveTo(48,42); pctx.lineTo(30,36); pctx.lineTo(34,48); pctx.fill(); pctx.beginPath(); pctx.moveTo(80,42); pctx.lineTo(98,36); pctx.lineTo(94,48); pctx.fill();
-  pctx.fillStyle='#90e0ef'; pctx.beginPath(); pctx.moveTo(46,43); pctx.lineTo(34,39); pctx.lineTo(36,45); pctx.fill(); pctx.beginPath(); pctx.moveTo(82,43); pctx.lineTo(94,39); pctx.lineTo(92,45); pctx.fill();
-  // 頭髮與呆毛
-  const frontHairGrad = pctx.createLinearGradient(0,20,0,80); frontHairGrad.addColorStop(0,'#2b3b6b'); frontHairGrad.addColorStop(1,'#4ea8de');
-  pctx.fillStyle=frontHairGrad;
-  pctx.beginPath(); pctx.moveTo(48,35); pctx.quadraticCurveTo(64,25,80,35); pctx.quadraticCurveTo(75,50,64,40); pctx.quadraticCurveTo(53,50,48,35); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(48,35); pctx.bezierCurveTo(30,60,20,100,35,130); pctx.bezierCurveTo(45,110,50,80,55,50); pctx.fill();
-  pctx.beginPath(); pctx.moveTo(80,35); pctx.bezierCurveTo(98,60,108,100,93,130); pctx.bezierCurveTo(83,110,78,80,73,50); pctx.fill();
-  pctx.strokeStyle='#2b3b6b'; pctx.lineWidth=2; pctx.beginPath(); pctx.moveTo(64,30); pctx.bezierCurveTo(55,10,70,5,75,15); pctx.stroke();
-  // 女僕頭飾
-  pctx.strokeStyle='#ffffff'; pctx.lineWidth=4; pctx.beginPath(); pctx.arc(64,30,22,Math.PI*1.1,Math.PI*1.9); pctx.stroke();
-  pctx.strokeStyle='#e0e0e0'; pctx.lineWidth=1; pctx.beginPath(); pctx.arc(64,30,24,Math.PI*1.1,Math.PI*1.9); pctx.stroke();
-  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.moveTo(84,18); pctx.lineTo(95,12); pctx.lineTo(92,24); pctx.fill(); pctx.beginPath(); pctx.moveTo(84,18); pctx.lineTo(95,28); pctx.lineTo(92,16); pctx.fill();
-  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(84,18,2.5,0,Math.PI*2); pctx.fill();
+  pctx.clearRect(0,0,64,90);
+  pctx.fillStyle='#e63946';pctx.fillRect(18,26,28,32);
+  pctx.fillStyle='#ffe0bd';pctx.fillRect(24,48,6,25);pctx.fillRect(34,48,6,25);
+  pctx.strokeStyle='#2b6cb0';pctx.lineWidth=1.2;
+  pctx.beginPath();pctx.moveTo(24,56);pctx.lineTo(30,61);pctx.moveTo(30,61);pctx.lineTo(24,66);pctx.moveTo(24,66);pctx.lineTo(30,71);pctx.moveTo(34,56);pctx.lineTo(40,61);pctx.moveTo(40,61);pctx.lineTo(34,66);pctx.moveTo(34,66);pctx.lineTo(40,71);pctx.stroke();
+  pctx.fillStyle='#2b6cb0';pctx.fillRect(23,73,8,3);pctx.fillRect(33,73,8,3);
+  pctx.fillStyle='#ffe0bd';pctx.fillRect(23,34,18,16);
+  pctx.fillStyle='rgba(255,255,255,.75)';pctx.fillRect(18,36,5,12);pctx.fillRect(41,36,5,12);
+  pctx.fillStyle='#fff';pctx.fillRect(24,35,16,7);
+  pctx.fillStyle='#1a365d';pctx.fillRect(24,45,16,5);
+  pctx.fillStyle='#2b6cb0';pctx.beginPath();pctx.arc(30,38,2,0,Math.PI*2);pctx.arc(34,38,2,0,Math.PI*2);pctx.fill();pctx.fillRect(31,37,2,3);
+  pctx.fillStyle='#ffe0bd';pctx.beginPath();pctx.arc(32,24,11,0,Math.PI*2);pctx.fill();
+  pctx.fillStyle='#e63946';pctx.fillRect(21,14,22,11);pctx.fillRect(19,23,5,18);pctx.fillRect(40,23,5,18);
+  pctx.fillStyle='#1a365d';pctx.beginPath();pctx.arc(28,24,1.8,0,Math.PI*2);pctx.arc(36,24,1.8,0,Math.PI*2);pctx.fill();
+  pctx.fillStyle='#ffb703';pctx.beginPath();pctx.arc(32,9,4.5,0,Math.PI*2);pctx.fill();
+  pctx.fillStyle='#fb8500';pctx.beginPath();pctx.arc(35,10,1.8,0,Math.PI*2);pctx.fill();
 }
 renderDetailedSummerSkin();
 const summerSkinImg=new Image(); summerSkinImg.src=paperCanvas.toDataURL();
+
+// 深海女僕皮膚 (全新重寫版)
+function renderMaidSkin(){
+  pctx.clearRect(0,0,64,90);
+  
+  // 1. 背景長髮 (深藍色基底)
+  pctx.fillStyle='#1e2a4a';
+  pctx.beginPath(); pctx.moveTo(20,30); pctx.quadraticCurveTo(5,60,15,85); pctx.lineTo(49,85); pctx.quadraticCurveTo(59,60,44,30); pctx.fill();
+
+  // 2. 鯨魚尾巴 (右後方)
+  pctx.fillStyle='#2b3b6b';
+  pctx.beginPath(); pctx.moveTo(45,70); pctx.quadraticCurveTo(60,75,55,85); pctx.quadraticCurveTo(50,80,45,75); pctx.fill();
+  pctx.fillStyle='#4ea8de';
+  pctx.beginPath(); pctx.moveTo(48,72); pctx.quadraticCurveTo(58,76,54,83); pctx.quadraticCurveTo(51,79,48,75); pctx.fill();
+
+  // 3. 裙擺與腿
+  // 內裙 (淺藍)
+  pctx.fillStyle='#90e0ef'; pctx.beginPath(); pctx.moveTo(20,60); pctx.lineTo(44,60); pctx.lineTo(48,82); pctx.lineTo(16,82); pctx.fill();
+  // 外裙 (深藍)
+  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.moveTo(18,60); pctx.lineTo(46,60); pctx.lineTo(52,78); pctx.lineTo(12,78); pctx.fill();
+  // 裙子蕾絲邊
+  pctx.fillStyle='#ffffff';
+  for(let i=0;i<7;i++){ pctx.beginPath(); pctx.arc(15+i*5,78,2.5,0,Math.PI); pctx.fill(); }
+  // 腿 (白絲襪)
+  pctx.fillStyle='#ffffff'; pctx.fillRect(23,78,5,8); pctx.fillRect(36,78,5,8);
+  // 鞋子
+  pctx.fillStyle='#151c33'; pctx.beginPath(); pctx.ellipse(25.5,87,4,2,0,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.ellipse(38.5,87,4,2,0,0,Math.PI*2); pctx.fill();
+
+  // 4. 身體與女僕裝
+  // 上衣 (深藍)
+  pctx.fillStyle='#1e2a4a'; pctx.beginPath(); pctx.moveTo(22,40); pctx.lineTo(42,40); pctx.lineTo(46,60); pctx.lineTo(18,60); pctx.fill();
+  // 白色圍裙
+  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.moveTo(24,45); pctx.lineTo(40,45); pctx.lineTo(44,78); pctx.lineTo(20,78); pctx.fill();
+  // 圍裙下擺蕾絲
+  pctx.fillStyle='#ffffff';
+  for(let i=0;i<5;i++){ pctx.beginPath(); pctx.arc(21+i*5,78,2.5,0,Math.PI); pctx.fill(); }
+  // 鯨魚圖案
+  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(32,65,4,3,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(36,65); pctx.lineTo(39,63); pctx.lineTo(38,67); pctx.fill();
+  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(30,64.5,1,0,Math.PI*2); pctx.fill();
+  // 金色釦子
+  pctx.fillStyle='#ffd700'; pctx.fillRect(28,42,2,2); pctx.fillRect(34,42,2,2); pctx.fillRect(28,46,2,2); pctx.fillRect(34,46,2,2);
+
+  // 5. 頭部
+  // 臉
+  pctx.fillStyle='#ffe0bd'; pctx.beginPath(); pctx.arc(32,28,10,0,Math.PI*2); pctx.fill();
+  // 眼睛 (超可愛藍眼)
+  pctx.fillStyle='#0a2a4a'; pctx.beginPath(); pctx.ellipse(27,29,2.5,3.5,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.ellipse(37,29,2.5,3.5,0,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#4ea8de'; pctx.beginPath(); pctx.ellipse(27,29.5,1.8,2.5,0,0,Math.PI*2); pctx.fill();
+  pctx.beginPath(); pctx.ellipse(37,29.5,1.8,2.5,0,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#ffffff'; pctx.beginPath(); pctx.arc(26,28,0.8,0,Math.PI*2); pctx.fill(); pctx.beginPath(); pctx.arc(36,28,0.8,0,Math.PI*2); pctx.fill();
+  // 腮紅與嘴巴
+  pctx.fillStyle='rgba(255,143,163,0.6)'; pctx.beginPath(); pctx.arc(24,32,1.5,0,Math.PI*2); pctx.arc(40,32,1.5,0,Math.PI*2); pctx.fill();
+  pctx.fillStyle='#ff8fa3'; pctx.beginPath(); pctx.arc(32,33,1,0,Math.PI); pctx.fill();
+
+  // 6. 魚鰭耳朵
+  pctx.fillStyle='#90e0ef';
+  pctx.beginPath(); pctx.moveTo(22,26); pctx.lineTo(16,23); pctx.lineTo(19,29); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(42,26); pctx.lineTo(48,23); pctx.lineTo(45,29); pctx.fill();
+
+  // 7. 前髮與瀏海
+  pctx.fillStyle='#2b3b6b';
+  pctx.beginPath(); pctx.moveTo(22,28); pctx.quadraticCurveTo(32,18,42,28); pctx.quadraticCurveTo(37,32,32,25); pctx.quadraticCurveTo(27,32,22,28); pctx.fill();
+  // 兩側長髮
+  pctx.beginPath(); pctx.moveTo(22,28); pctx.quadraticCurveTo(15,50,20,70); pctx.quadraticCurveTo(25,50,26,35); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(42,28); pctx.quadraticCurveTo(49,50,44,70); pctx.quadraticCurveTo(39,50,38,35); pctx.fill();
+  // 頭髮高光
+  pctx.strokeStyle='#4ea8de'; pctx.lineWidth=1; pctx.beginPath(); pctx.moveTo(24,35); pctx.quadraticCurveTo(20,50,22,65); pctx.stroke();
+  pctx.beginPath(); pctx.moveTo(40,35); pctx.quadraticCurveTo(44,50,42,65); pctx.stroke();
+
+  // 8. 女僕頭飾 (蕾絲 + 蝴蝶結)
+  pctx.strokeStyle='#ffffff'; pctx.lineWidth=2; pctx.beginPath(); pctx.arc(32,18,10,Math.PI*1.1,Math.PI*1.9); pctx.stroke();
+  pctx.fillStyle='#4ea8de';
+  pctx.beginPath(); pctx.moveTo(42,15); pctx.lineTo(47,12); pctx.lineTo(46,18); pctx.fill();
+  pctx.beginPath(); pctx.moveTo(42,15); pctx.lineTo(47,18); pctx.lineTo(46,12); pctx.fill();
+
+  // 9. 頭頂呆毛 (水滴狀)
+  pctx.fillStyle='#2b3b6b'; pctx.beginPath(); pctx.moveTo(32,18); pctx.quadraticCurveTo(28,8,35,6); pctx.quadraticCurveTo(34,12,32,18); pctx.fill();
+}
 renderMaidSkin();
 const maidSkinImg=new Image(); maidSkinImg.src=paperCanvas.toDataURL();
+
 function saveSelectedSkin(){try{localStorage.setItem(SKIN_KEY,currentSkinId)}catch(e){}}
 
 const BOSS_ORDER=['slime','boneKing','zulan','lavaDragons','headlessKnight','darkKnight','voidWhale','mechTyrant'];
