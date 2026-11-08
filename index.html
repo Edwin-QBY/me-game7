@@ -283,6 +283,101 @@ function buildBossSprites(){
 buildBossSprites();
 function bossForWave(w){const idx=Math.floor(w/5)-1;return idx>=0&&idx<BOSS_ORDER.length?BOSS_ORDER[idx]:BOSS_ORDER[Math.floor(Math.random()*BOSS_ORDER.length)]}
 
+/* ===== UI 渲染 ===== */
+function showMenu(id){document.querySelectorAll('.modal-overlay').forEach(el=>el.style.display='none');const el=document.getElementById(id);if(el)el.style.display='flex'}
+function renderChoices(){
+  document.getElementById('classChoices').innerHTML=classes.map(c=>`<button class="choice-card ${classId===c.id?'selected':''}" data-job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.desc}</small></button>`).join('');
+  document.getElementById('weaponChoices').innerHTML=weapons.map(w=>{const ws=weaponStats(w);return `<button class="weapon-card ${weaponId===w.id?'selected':''}" data-weapon="${w.id}"><strong>${w.name} Lv.${ws.level} ${WEAPON_TIER_NAMES[ws.level-1]}</strong><small>${w.desc}<br>傷害 x${ws.damage.toFixed(2)} · 距離 ${Math.round(ws.range)} · 間隔 ${ws.cooldown.toFixed(0)} 幀</small></button>`}).join('');
+  document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{classId=b.dataset.job;renderChoices()});
+  document.querySelectorAll('[data-weapon]').forEach(b=>b.onclick=()=>{weaponId=b.dataset.weapon;renderChoices()});
+}
+function renderDualChoices(){
+  const mk=(gid,cur,list,render)=>document.getElementById(gid).innerHTML=list.map(x=>render(x,cur===x.id)).join('');
+  mk('p1ClassChoices',dualClassId1,classes,(c,sel)=>`<button class="choice-card ${sel?'selected':''}" data-p1job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.skillName}</small></button>`);
+  mk('p2ClassChoices',dualClassId2,classes,(c,sel)=>`<button class="choice-card ${sel?'selected':''}" data-p2job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.skillName}</small></button>`);
+  mk('p1WeaponChoices',dualWeaponId1,weapons,(w,sel)=>`<button class="weapon-card ${sel?'selected':''}" data-p1w="${w.id}"><strong>${w.name}</strong><small>Lv.${wLevel(w.id)}</small></button>`);
+  mk('p2WeaponChoices',dualWeaponId2,weapons,(w,sel)=>`<button class="weapon-card ${sel?'selected':''}" data-p2w="${w.id}"><strong>${w.name}</strong><small>Lv.${wLevel(w.id)}</small></button>`);
+  document.querySelectorAll('[data-p1job]').forEach(b=>b.onclick=()=>{dualClassId1=b.dataset.p1job;renderDualChoices()});
+  document.querySelectorAll('[data-p2job]').forEach(b=>b.onclick=()=>{dualClassId2=b.dataset.p2job;renderDualChoices()});
+  document.querySelectorAll('[data-p1w]').forEach(b=>b.onclick=()=>{dualWeaponId1=b.dataset.p1w;renderDualChoices()});
+  document.querySelectorAll('[data-p2w]').forEach(b=>b.onclick=()=>{dualWeaponId2=b.dataset.p2w;renderDualChoices()});
+}
+function renderSkins(){
+  document.getElementById('skinChoices').innerHTML=skinList.map(s=>`<button class="skin-card ${currentSkinId===s.id?'selected':''}" data-skin="${s.id}">${s.id==='summer_skin'?'<img class="skin-preview" src="'+summerSkinImg.src+'" alt="皮膚預覽">':s.id==='maid_skin'?'<img class="skin-preview" src="'+maidSkinImg.src+'" alt="女僕預覽">':'<span class="skin-preview" style="height:90px;display:grid;place-items:center;font-size:42px">🥔</span>'}<strong>${s.name}</strong><small>${s.desc}</small></button>`).join('');
+  document.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{currentSkinId=b.dataset.skin;saveSelectedSkin();renderSkins()});
+}
+function renderForge(){
+  document.getElementById('forgeMat').textContent=meta.weaponMat;
+  document.getElementById('forgeGrid').innerHTML=weapons.map(w=>{
+    const lv=wLevel(w.id),cost=weaponUpgradeCost(w.id),maxed=lv>=MAX_WLV,ws=weaponStats(w);
+    const nextLv=lv+1;
+    let specialReq=null;
+    if(nextLv>=5&&nextLv<=10){
+      const bossKey=BOSS_ORDER[nextLv-5]; 
+      if(SPECIAL_MATS[bossKey]) specialReq={key:bossKey,mat:SPECIAL_MATS[bossKey],need:1,has:meta.specialMats[bossKey]||0};
+    }
+    let canUpgrade = meta.weaponMat>=cost;
+    let specialText = '';
+    if(specialReq){
+      canUpgrade = canUpgrade && specialReq.has >= specialReq.need;
+      specialText = `<br><span style="color:${specialReq.mat.color}">需要專屬材料：${specialReq.mat.name} x${specialReq.need} (擁有 ${specialReq.has})</span>`;
+    }
+    if(maxed)canUpgrade=false;
+
+    return `<button class="weapon-card" data-forge="${w.id}" ${!canUpgrade?'disabled':''} style="border-color:${ws.color}">
+      <strong style="color:${ws.color}">${w.name} Lv.${lv} ${maxed?'【進化】':'· '+WEAPON_TIER_NAMES[lv-1]}</strong>
+      <small>傷害 x${ws.damage.toFixed(2)}<br>距離 ${Math.round(ws.range)} · 間隔 ${ws.cooldown.toFixed(0)} 幀<br>
+      ${maxed?'已達最高等級(進化)':'升級需要 '+cost+' 武器素材'}${specialText}</small></button>`
+  }).join('');
+  
+  document.querySelectorAll('[data-forge]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.forge,lv=wLevel(id);
+    if(lv>=MAX_WLV)return;
+    const cost=weaponUpgradeCost(id);
+    if(meta.weaponMat<cost)return;
+    const nextLv=lv+1;
+    if(nextLv>=5&&nextLv<=10){
+      const bossKey=BOSS_ORDER[nextLv-5];
+      if(SPECIAL_MATS[bossKey] && (meta.specialMats[bossKey]||0) < 1)return;
+      if(SPECIAL_MATS[bossKey]) meta.specialMats[bossKey]--;
+    }
+    meta.weaponMat-=cost;meta.weaponLevels[id]=lv+1;saveMeta();renderForge();playSound('coin');
+  });
+}
+function renderChar(){
+  document.getElementById('charMat').textContent=meta.charMat;
+  document.getElementById('charGrid').innerHTML=classes.map(c=>{const lv=cLevel(c.id),cost=charUpgradeCost(c.id),maxed=lv>=MAX_CLV,b=charBonus(c.id);return `<button class="choice-card" data-char="${c.id}" ${maxed?'disabled':''}><strong>${c.name} Lv.${lv}</strong><small>生命 +${Math.round((b.hp-1)*100)}% · 傷害 +${Math.round((b.dmg-1)*100)}% · 速度 +${Math.round((b.spd-1)*100)}%<br>技能：${c.skillName}<br>${maxed?'已達最高等級':'升級需要 '+cost+' 角色靈魂'}</small></button>`}).join('');
+  document.querySelectorAll('[data-char]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.char,lv=cLevel(id);
+    if(lv>=MAX_CLV)return;
+    const cost=charUpgradeCost(id);
+    if(meta.charMat<cost)return;
+    meta.charMat-=cost;meta.charLevels[id]=lv+1;saveMeta();renderChar();playSound('coin');
+  });
+}
+function generateCode(){
+  const data={w:meta.weaponLevels,c:meta.charLevels,s:meta.specialMats};
+  try{return btoa(JSON.stringify(data))}catch(e){return ""}
+}
+function importCode(code){
+  if(!code)return false;
+  try{
+    const data=JSON.parse(atob(code));
+    if(data.w)meta.weaponLevels=data.w;
+    if(data.c)meta.charLevels=data.c;
+    if(data.s)meta.specialMats=data.s;
+    saveMeta();renderForge();renderChar();
+    return true;
+  }catch(e){return false}
+}
+function parseCodeToLevels(code){
+  if(!code)return {w:{},c:{},s:{}};
+  try{
+    const data=JSON.parse(atob(code));
+    return {w:data.w||{},c:data.c||{},s:data.s||{}};
+  }catch(e){return {w:{},c:{},s:{}}}
+}
+  
 /* ===== 設定與音效 ===== */
 const settings={sound:true,volume:.65,effects:1};try{Object.assign(settings,JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'))}catch(e){}
 const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');let audioCtx=null;
