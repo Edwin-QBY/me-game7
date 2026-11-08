@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>馬鈴薯深空戰記 V4</title>
+<title>馬鈴薯深空戰記 V5.3</title>
 <style>
 *{box-sizing:border-box;user-select:none;-webkit-user-select:none;touch-action:manipulation}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1a1c23;color:#fff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}canvas{display:block;width:100%;height:100%;background:radial-gradient(circle at center,#252836,#101218)}#ui-layer{position:absolute;inset:0;padding:14px;pointer-events:none;z-index:20}.hud-top{display:flex;justify-content:space-between;align-items:flex-start}.hud-panel{display:flex;gap:14px;flex-wrap:wrap;background:#141923dc;border:2px solid #fc0;border-radius:10px;padding:9px 13px;font-size:13px;line-height:1.5;box-shadow:0 0 15px #fc04}.hud-panel span{color:#fc0;font-weight:bold}.btn-pause{pointer-events:auto;background:#101218;border:2px solid #fc0;color:#fc0;padding:9px 14px;border-radius:8px;font-weight:bold;cursor:pointer}
 .controls-layer{position:absolute;inset:0;display:none;z-index:10;touch-action:none}.touch-active .controls-layer{display:block}.stick{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:2px solid #fc08;background:#ffffff12;pointer-events:none;display:none}.stick i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px;border:2px solid #fc0;border-radius:50%;background:#fc06}.stick.p2{border-color:#ff6ec7aa;background:#ff6ec712}.stick.p2 i{border-color:#ff6ec7;background:#ff6ec722;box-shadow:0 0 12px #ff6ec755}.low-health-vignette{position:fixed;inset:0;z-index:15;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(180,0,20,.68) 100%);transition:opacity .25s ease}.low-health-vignette.active{opacity:1;animation:lowHealthPulse 1.15s ease-in-out infinite alternate}@keyframes lowHealthPulse{from{filter:brightness(.75)}to{filter:brightness(1.25)}}
@@ -12,17 +12,35 @@
 .dual-cols{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:min(1120px,98vw);margin-bottom:10px}.dual-col{flex:1;min-width:290px;background:#141923;border:1px solid #fc08;border-radius:12px;padding:10px}.dual-col-title{font-size:14px;font-weight:800;color:#0fc;margin-bottom:8px;letter-spacing:1px}.choice-grid.small,.weapon-grid.small{width:100%;gap:6px}.choice-grid.small .choice-card,.weapon-grid.small .weapon-card{width:126px;max-width:46%;padding:8px;font-size:11px;line-height:1.25}.choice-grid.small .choice-card strong,.weapon-grid.small .weapon-card strong{font-size:12px;margin-bottom:3px}
 .mat-bar{color:#fc0;font-weight:800;font-size:15px;margin:6px 0}.code-area{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:10px auto;padding:10px;background:#141923;border:1px solid #fc08;border-radius:8px;width:min(800px,96vw)}.code-area input{flex:1;min-width:150px;padding:8px;border-radius:6px;border:1px solid #fc08;background:#101218;color:#fff;text-align:center;font-size:13px}
 .shop-title-p1{color:#0fc;font-weight:bold;font-size:18px;margin-top:6px}.shop-title-p2{color:#ff6ec7;font-weight:bold;font-size:18px;margin-top:6px}
+
+/* V5.3 新增：BOSS 出場動畫 */
+#bossIntroOverlay{position:absolute;inset:0;z-index:50;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at center,rgba(0,0,0,.35) 0%,rgba(0,0,0,.85) 100%)}
+#bossIntroOverlay.active{display:flex;animation:bossFadeIn .4s ease}
+@keyframes bossFadeIn{from{opacity:0}to{opacity:1}}
+#bossIntroName{font-size:64px;font-weight:900;color:#ff3366;text-shadow:0 0 30px #ff3366,0 0 60px #ff3366aa,0 6px 0 #000;letter-spacing:6px;opacity:0;transform:scale(.5)}
+#bossIntroName.show{animation:bossNameShow 1.4s ease forwards}
+@keyframes bossNameShow{0%{opacity:0;transform:scale(.5)}30%{opacity:1;transform:scale(1.15)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
+#bossIntroSub{font-size:20px;color:#fc0;letter-spacing:8px;margin-top:12px;opacity:0;text-shadow:0 0 12px #fc0}
+#bossIntroSub.show{animation:bossNameShow 1.4s ease .2s forwards}
+.boss-phase-tag{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:16px;font-weight:900;color:#fff;background:#ff3366cc;padding:5px 16px;border-radius:6px;letter-spacing:3px;display:none;z-index:30;text-shadow:0 0 8px #000}
+.boss-phase-tag.show{display:block;animation:phasePulse .5s ease}
+@keyframes phasePulse{from{transform:translateX(-50%) scale(.7)}to{transform:translateX(-50%) scale(1)}}
 </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
 <div class="low-health-vignette" id="lowHealthVignette"></div>
+<div id="bossIntroOverlay">
+  <div id="bossIntroName"></div>
+  <div id="bossIntroSub">— BOSS 降臨 —</div>
+</div>
+<div class="boss-phase-tag" id="bossPhaseTag"></div>
 <div id="ui-layer"><div class="hud-top"><div class="hud-panel"><div>波次：<span id="hud-wave">1</span></div><div>生命：<span id="hud-hp">100/100</span></div><div>金幣：<span id="hud-gold">15</span></div><div>時間：<span id="hud-timer">30s</span></div></div><button class="btn-pause" id="pauseBtn">⏸</button></div></div>
 <button class="skill-btn p1btn" id="skillBtn">技能</button>
 <button class="skill-btn p2btn" id="skillBtn2">P2技能</button>
 <div class="controls-layer" id="controlsLayer"><div class="stick" id="joystickBase"><i id="joystickThumb"></i></div><div class="stick p2" id="joystickBase2"><i id="joystickThumb2"></i></div></div>
 
-<div class="modal-overlay" id="startMenu"><div class="modal-title" style="margin-top:60px;">馬鈴薯深空戰記</div><div class="modal-subtitle">SPACE SPUD: ARENA SURVIVAL V4</div><div class="menu-buttons"><button class="btn-menu" id="newGameBtn">開始戰鬥</button><button class="btn-menu secondary" id="continueGameBtn" hidden>繼續戰鬥</button><button class="btn-menu secondary" id="openForgeBtn">⚒ 武器工坊</button><button class="btn-menu secondary" id="openCharBtn">🧬 角色訓練</button><button class="btn-menu secondary" id="openDualBtn">👥 雙人模式</button><button class="btn-menu secondary" id="openSkinsBtn">角色皮膚</button><button class="btn-menu secondary" id="openSettingsBtn">設定</button></div></div>
+<div class="modal-overlay" id="startMenu"><div class="modal-title" style="margin-top:60px;">馬鈴薯深空戰記</div><div class="modal-subtitle">SPACE SPUD: ARENA SURVIVAL V5.3</div><div class="menu-buttons"><button class="btn-menu" id="newGameBtn">開始戰鬥</button><button class="btn-menu secondary" id="continueGameBtn" hidden>繼續戰鬥</button><button class="btn-menu secondary" id="openForgeBtn">⚒ 武器工坊</button><button class="btn-menu secondary" id="openCharBtn">🧬 角色訓練</button><button class="btn-menu secondary" id="openDualBtn">👥 雙人模式</button><button class="btn-menu secondary" id="openSkinsBtn">角色皮膚</button><button class="btn-menu secondary" id="openSettingsBtn">設定</button></div></div>
 
 <div class="modal-overlay" id="loadoutMenu" style="display:none"><div class="modal-title">選擇你的戰鬥配置</div><div class="modal-subtitle">選擇職業與武器後進入戰鬥（武器等級與角色等級會自動套用）</div><strong>職業</strong><div class="choice-grid" id="classChoices"></div><strong>武器</strong><div class="weapon-grid" id="weaponChoices"></div><div class="menu-buttons"><button class="btn-menu" id="beginBattleBtn">開始戰鬥</button><button class="btn-menu secondary" id="loadoutBackBtn">返回</button></div></div>
 
@@ -75,7 +93,7 @@
 /* ===== 常數 ===== */
 const SAVE_KEY='spaceSpudArenaSaveV1',SETTINGS_KEY='spaceSpudSettingsV1',SKIN_KEY='spaceSpudSkinV1',META_KEY='spaceSpudMetaV2',SHOP_REROLL_BASE_COST=10,SHOP_REROLL_COST_STEP=10,TRANSITION_INVULNERABILITY_FRAMES=6,REVIVE_INVULNERABILITY_FRAMES=120,MAX_DEFENSE_RATE=.999,PLAYER_SPEED_CAP_MAX=40,MAX_WLV=10,MAX_CLV=10;
 
-/* ===== 職業（老 3 用第一份 ×2 / ×2.8；新 3 用第二份；技能欄用第二份） ===== */
+/* ===== 職業 ===== */
 const classes=[
 {id:'berserker',name:'狂戰士',desc:'近戰傷害 +100%，暴擊傷害 +75%。技能：狂暴（8 秒內傷害 +60%、攻速 +50%）',melee:2,range:1,crit:0,critDamage:.75,summon:1,skill:'rage',skillCd:600,skillName:'狂暴'},
 {id:'archer',name:'弓箭手',desc:'遠程傷害 +100%，射程 +100%。技能：箭雨（對全場敵人射出追蹤箭）',melee:1,range:2,crit:0,critDamage:0,summon:1,skill:'arrowRain',skillCd:480,skillName:'箭雨'},
@@ -110,27 +128,210 @@ function renderDetailedSummerSkin(){pctx.clearRect(0,0,64,90);pctx.fillStyle='#e
 renderDetailedSummerSkin();const summerSkinImg=new Image();summerSkinImg.src=paperCanvas.toDataURL();
 function saveSelectedSkin(){try{localStorage.setItem(SKIN_KEY,currentSkinId)}catch(e){}}
 
-/* ===== BOSS 貼圖 ===== */
-const BOSS_DEFS={slime:{name:'史萊姆',color:'#4ade80',hpMul:.8,dmgMul:.85,speed:.9},boneKing:{name:'骨王',color:'#e5e7eb',hpMul:.95,dmgMul:1,speed:.8},zulan:{name:'祖藍',color:'#a78bfa',hpMul:1.05,dmgMul:1,speed:.75},lavaDragons:{name:'熔岩雙龍',color:'#ff6b35',hpMul:1.15,dmgMul:1.1,speed:.7},voidWhale:{name:'虛空巨鯨',color:'#38bdf8',hpMul:1.25,dmgMul:1.05,speed:.65},mechTyrant:{name:'機械暴君',color:'#94a3b8',hpMul:1.35,dmgMul:1.15,speed:.6}};
-const BOSS_ORDER=['slime','boneKing','zulan','lavaDragons','voidWhale','mechTyrant'];
+/* ===== V5.3 BOSS 資料層 ===== */
+/* 固定順序（按難度/B格）：史萊姆 → 骨王 → 祖藍 → 熔岩雙龍 → 無頭騎士 → 暗黑騎士 → 虛空巨鯨 → 機械暴君 */
+const BOSS_ORDER=['slime','boneKing','zulan','lavaDragons','headlessKnight','darkKnight','voidWhale','mechTyrant'];
+const BOSS_DEFS={
+  slime:{name:'史萊姆',color:'#4ade80',hpMul:.7,dmgMul:.85,speed:.9,defense:.05,summonType:'slime_mini',summonCd:180},
+  boneKing:{name:'骨王',color:'#e5e7eb',hpMul:1.0,dmgMul:1,speed:.8,defense:.08,summonType:'skeleton',summonCd:150},
+  zulan:{name:'祖藍',color:'#a78bfa',hpMul:1.15,dmgMul:1.05,speed:.75,defense:.10,summonType:'zulan_minion',summonCd:140},
+  lavaDragons:{name:'熔岩雙龍',color:'#ff6b35',hpMul:1.4,dmgMul:1.15,speed:.7,defense:.12,summonType:'lava_spawn',summonCd:160},
+  headlessKnight:{name:'無頭騎士',color:'#94a3b8',hpMul:1.55,dmgMul:1.25,speed:.72,defense:.14,summonType:'skeleton',summonCd:180,phases:2},
+  darkKnight:{name:'暗黑騎士',color:'#7c3aed',hpMul:1.8,dmgMul:1.35,speed:.68,defense:.16,summonType:'dark_minion',summonCd:150,phases:3},
+  voidWhale:{name:'虛空巨鯨',color:'#38bdf8',hpMul:2.1,dmgMul:1.4,speed:.62,defense:.18,summonType:'void_spawn',summonCd:170},
+  mechTyrant:{name:'機械暴君',color:'#94a3b8',hpMul:2.5,dmgMul:1.55,speed:.58,defense:.20,summonType:'mech_drone',summonCd:120}
+};
+
+/* BOSS 貼圖（暗黑騎士三階段、無頭騎士兩階段） */
 const bossSprites={};
-function buildBossSprites(){for(const key of BOSS_ORDER){const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');g.clearRect(0,0,128,128);
-if(key==='slime'){g.fillStyle='#166534';g.beginPath();g.moveTo(10,92);g.quadraticCurveTo(16,28,64,24);g.quadraticCurveTo(112,28,118,92);g.quadraticCurveTo(96,110,64,108);g.quadraticCurveTo(32,110,10,92);g.closePath();g.fill();g.fillStyle='#22c55e';g.beginPath();g.moveTo(18,88);g.quadraticCurveTo(22,36,64,32);g.quadraticCurveTo(106,36,110,88);g.quadraticCurveTo(90,102,64,100);g.quadraticCurveTo(38,102,18,88);g.closePath();g.fill();g.fillStyle='#86efac';g.beginPath();g.ellipse(46,54,16,10,-.5,0,Math.PI*2);g.fill();g.fillStyle='#052e16';g.beginPath();g.ellipse(48,68,7,9,0,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(80,68,7,9,0,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(50,64,3,0,Math.PI*2);g.fill();g.beginPath();g.arc(82,64,3,0,Math.PI*2);g.fill();g.strokeStyle='#052e16';g.lineWidth=3;g.beginPath();g.arc(64,86,15,.25,Math.PI-.25);g.stroke();}
-else if(key==='boneKing'){g.fillStyle='#fbbf24';g.beginPath();g.moveTo(34,40);g.lineTo(44,12);g.lineTo(56,32);g.lineTo(64,6);g.lineTo(72,32);g.lineTo(84,12);g.lineTo(94,40);g.closePath();g.fill();g.fillStyle='#fde68a';g.fillRect(34,38,60,6);g.fillStyle='#e5e7eb';g.beginPath();g.ellipse(64,66,34,30,0,0,Math.PI*2);g.fill();g.fillRect(50,86,28,20);g.fillStyle='#0b0f17';g.beginPath();g.ellipse(52,62,11,12,0,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(76,62,11,12,0,0,Math.PI*2);g.fill();g.fillStyle='#ff2d55';g.beginPath();g.arc(52,62,4.5,0,Math.PI*2);g.fill();g.beginPath();g.arc(76,62,4.5,0,Math.PI*2);g.fill();g.fillStyle='#0b0f17';g.beginPath();g.moveTo(64,74);g.lineTo(59,84);g.lineTo(69,84);g.closePath();g.fill();for(let i=0;i<4;i++){g.fillRect(52+i*7,90,4,9)}}
-else if(key==='zulan'){g.fillStyle='#4c1d95';g.beginPath();g.moveTo(64,38);g.lineTo(108,116);g.lineTo(20,116);g.closePath();g.fill();g.fillStyle='#7c3aed';g.beginPath();g.moveTo(64,48);g.lineTo(94,116);g.lineTo(34,116);g.closePath();g.fill();g.fillStyle='#c4b5fd';g.beginPath();g.arc(64,42,20,0,Math.PI*2);g.fill();g.fillStyle='#1e1b4b';g.beginPath();g.arc(57,40,3.5,0,Math.PI*2);g.fill();g.beginPath();g.arc(71,40,3.5,0,Math.PI*2);g.fill();g.fillStyle='#a78bfa';g.beginPath();g.moveTo(64,4);g.lineTo(76,24);g.lineTo(64,36);g.lineTo(52,24);g.closePath();g.fill();g.strokeStyle='#ddd6fe';g.lineWidth=2;g.stroke();g.fillStyle='#38bdf8';g.beginPath();g.arc(40,84,5,0,Math.PI*2);g.fill();g.beginPath();g.arc(88,84,5,0,Math.PI*2);g.fill();}
-else if(key==='lavaDragons'){function head(hx,hy,flip){g.save();g.translate(hx,hy);g.scale(flip?-1:1,1);g.fillStyle='#7f1d1d';g.beginPath();g.moveTo(-30,18);g.lineTo(6,-6);g.lineTo(30,10);g.lineTo(16,30);g.lineTo(-22,32);g.closePath();g.fill();g.fillStyle='#ea580c';g.beginPath();g.moveTo(-24,14);g.lineTo(2,-2);g.lineTo(24,10);g.lineTo(12,26);g.lineTo(-18,26);g.closePath();g.fill();g.fillStyle='#fbbf24';g.beginPath();g.arc(2,10,6,0,Math.PI*2);g.fill();g.fillStyle='#111';g.beginPath();g.arc(2,10,2.6,0,Math.PI*2);g.fill();g.fillStyle='#fde047';g.beginPath();g.moveTo(8,0);g.lineTo(16,-8);g.lineTo(20,2);g.closePath();g.fill();g.restore()}head(46,52,false);head(84,58,true);g.fillStyle='#b91c1c';g.beginPath();g.ellipse(64,104,32,18,0,0,Math.PI*2);g.fill();g.fillStyle='#f97316';g.beginPath();g.ellipse(64,100,20,10,0,0,Math.PI*2);g.fill();}
-else if(key==='voidWhale'){g.fillStyle='#0c4a6e';g.beginPath();g.moveTo(8,70);g.quadraticCurveTo(30,30,74,34);g.quadraticCurveTo(112,38,118,66);g.quadraticCurveTo(96,96,60,94);g.quadraticCurveTo(22,92,8,70);g.closePath();g.fill();g.fillStyle='#0ea5e9';g.beginPath();g.moveTo(14,70);g.quadraticCurveTo(34,40,74,42);g.quadraticCurveTo(104,46,110,68);g.quadraticCurveTo(90,88,58,86);g.quadraticCurveTo(28,84,14,70);g.closePath();g.fill();g.fillStyle='#bae6fd';g.beginPath();g.arc(44,62,7,0,Math.PI*2);g.fill();g.fillStyle='#082f49';g.beginPath();g.arc(44,62,3.4,0,Math.PI*2);g.fill();g.fillStyle='#7dd3fc';for(let i=0;i<7;i++){g.beginPath();g.arc(24+Math.random()*80,20+Math.random()*24,1.6,0,Math.PI*2);g.fill()}g.strokeStyle='#e0f2fe';g.lineWidth=2;g.beginPath();g.moveTo(70,88);g.lineTo(96,112);g.stroke();}
-else{g.fillStyle='#334155';g.fillRect(24,30,80,74);g.fillStyle='#64748b';g.fillRect(32,38,64,40);g.fillStyle='#0f172a';g.fillRect(38,46,52,14);g.fillStyle='#ff2d55';g.fillRect(44,50,14,7);g.fillRect(72,50,14,7);g.fillStyle='#94a3b8';g.fillRect(20,16,88,14);g.fillStyle='#f87171';g.fillRect(26,20,10,6);g.fillRect(60,20,10,6);g.fillRect(94,20,10,6);g.fillStyle='#475569';g.fillRect(30,84,20,26);g.fillRect(78,84,20,26);g.fillStyle='#facc15';g.fillRect(52,84,24,10);}
-bossSprites[key]=c;}}
+function buildBossSprites(){
+  /* 史萊姆 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#166534';g.beginPath();g.moveTo(10,92);g.quadraticCurveTo(16,28,64,24);g.quadraticCurveTo(112,28,118,92);g.quadraticCurveTo(96,110,64,108);g.quadraticCurveTo(32,110,10,92);g.closePath();g.fill();
+    g.fillStyle='#22c55e';g.beginPath();g.moveTo(18,88);g.quadraticCurveTo(22,36,64,32);g.quadraticCurveTo(106,36,110,88);g.quadraticCurveTo(90,102,64,100);g.quadraticCurveTo(38,102,18,88);g.closePath();g.fill();
+    g.fillStyle='#86efac';g.beginPath();g.ellipse(46,54,16,10,-.5,0,Math.PI*2);g.fill();
+    g.fillStyle='#052e16';g.beginPath();g.ellipse(48,68,7,9,0,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(80,68,7,9,0,0,Math.PI*2);g.fill();
+    g.fillStyle='#fff';g.beginPath();g.arc(50,64,3,0,Math.PI*2);g.fill();g.beginPath();g.arc(82,64,3,0,Math.PI*2);g.fill();
+    g.strokeStyle='#052e16';g.lineWidth=3;g.beginPath();g.arc(64,86,15,.25,Math.PI-.25);g.stroke();
+    bossSprites.slime=c;
+  }
+  /* 骨王 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#fbbf24';g.beginPath();g.moveTo(34,40);g.lineTo(44,12);g.lineTo(56,32);g.lineTo(64,6);g.lineTo(72,32);g.lineTo(84,12);g.lineTo(94,40);g.closePath();g.fill();
+    g.fillStyle='#fde68a';g.fillRect(34,38,60,6);
+    g.fillStyle='#e5e7eb';g.beginPath();g.ellipse(64,66,34,30,0,0,Math.PI*2);g.fill();g.fillRect(50,86,28,20);
+    g.fillStyle='#0b0f17';g.beginPath();g.ellipse(52,62,11,12,0,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(76,62,11,12,0,0,Math.PI*2);g.fill();
+    g.fillStyle='#ff2d55';g.beginPath();g.arc(52,62,4.5,0,Math.PI*2);g.fill();g.beginPath();g.arc(76,62,4.5,0,Math.PI*2);g.fill();
+    g.fillStyle='#0b0f17';g.beginPath();g.moveTo(64,74);g.lineTo(59,84);g.lineTo(69,84);g.closePath();g.fill();
+    for(let i=0;i<4;i++){g.fillRect(52+i*7,90,4,9)}
+    bossSprites.boneKing=c;
+  }
+  /* 祖藍 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#4c1d95';g.beginPath();g.moveTo(64,38);g.lineTo(108,116);g.lineTo(20,116);g.closePath();g.fill();
+    g.fillStyle='#7c3aed';g.beginPath();g.moveTo(64,48);g.lineTo(94,116);g.lineTo(34,116);g.closePath();g.fill();
+    g.fillStyle='#c4b5fd';g.beginPath();g.arc(64,42,20,0,Math.PI*2);g.fill();
+    g.fillStyle='#1e1b4b';g.beginPath();g.arc(57,40,3.5,0,Math.PI*2);g.fill();g.beginPath();g.arc(71,40,3.5,0,Math.PI*2);g.fill();
+    g.fillStyle='#a78bfa';g.beginPath();g.moveTo(64,4);g.lineTo(76,24);g.lineTo(64,36);g.lineTo(52,24);g.closePath();g.fill();g.strokeStyle='#ddd6fe';g.lineWidth=2;g.stroke();
+    g.fillStyle='#38bdf8';g.beginPath();g.arc(40,84,5,0,Math.PI*2);g.fill();g.beginPath();g.arc(88,84,5,0,Math.PI*2);g.fill();
+    bossSprites.zulan=c;
+  }
+  /* 熔岩雙龍 - 精修：加翅膀、尾巴、龍鱗 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    // 翼膜
+    g.fillStyle='#7f1d1d';g.beginPath();g.moveTo(64,50);g.lineTo(8,20);g.lineTo(20,50);g.lineTo(6,72);g.lineTo(64,58);g.closePath();g.fill();
+    g.beginPath();g.moveTo(64,50);g.lineTo(120,20);g.lineTo(108,50);g.lineTo(122,72);g.lineTo(64,58);g.closePath();g.fill();
+    g.fillStyle='#ea580c';g.beginPath();g.moveTo(64,52);g.lineTo(18,26);g.lineTo(28,50);g.lineTo(16,68);g.lineTo(64,58);g.closePath();g.fill();
+    g.beginPath();g.moveTo(64,52);g.lineTo(110,26);g.lineTo(100,50);g.lineTo(112,68);g.lineTo(64,58);g.closePath();g.fill();
+    // 身體
+    g.fillStyle='#b91c1c';g.beginPath();g.ellipse(64,94,26,20,0,0,Math.PI*2);g.fill();
+    g.fillStyle='#f97316';g.beginPath();g.ellipse(64,90,16,12,0,0,Math.PI*2);g.fill();
+    // 龍鱗
+    g.fillStyle='#7f1d1d';for(let i=0;i<4;i++){g.beginPath();g.arc(48+i*8,86,3,0,Math.PI*2);g.fill()}
+    // 尾巴
+    g.strokeStyle='#b91c1c';g.lineWidth=6;g.lineCap='round';g.beginPath();g.moveTo(64,110);g.quadraticCurveTo(80,124,100,120);g.stroke();
+    g.fillStyle='#fbbf24';g.beginPath();g.moveTo(100,120);g.lineTo(112,116);g.lineTo(108,124);g.closePath();g.fill();
+    // 兩顆龍頭
+    function head(hx,hy,flip){g.save();g.translate(hx,hy);g.scale(flip?-1:1,1);
+      g.fillStyle='#7f1d1d';g.beginPath();g.moveTo(-30,18);g.lineTo(6,-6);g.lineTo(30,10);g.lineTo(16,30);g.lineTo(-22,32);g.closePath();g.fill();
+      g.fillStyle='#ea580c';g.beginPath();g.moveTo(-24,14);g.lineTo(2,-2);g.lineTo(24,10);g.lineTo(12,26);g.lineTo(-18,26);g.closePath();g.fill();
+      // 角
+      g.fillStyle='#fde047';g.beginPath();g.moveTo(-6,-4);g.lineTo(-14,-16);g.lineTo(0,-6);g.closePath();g.fill();
+      g.fillStyle='#fbbf24';g.beginPath();g.arc(4,10,6,0,Math.PI*2);g.fill();
+      g.fillStyle='#111';g.beginPath();g.arc(4,10,2.8,0,Math.PI*2);g.fill();
+      // 牙
+      g.fillStyle='#fff';g.beginPath();g.moveTo(14,20);g.lineTo(18,26);g.lineTo(12,26);g.closePath();g.fill();g.beginPath();g.moveTo(22,22);g.lineTo(24,28);g.lineTo(18,27);g.closePath();g.fill();
+      g.restore();
+    }
+    head(46,52,false);head(82,54,true);
+    bossSprites.lavaDragons=c;
+  }
+  /* 無頭騎士 - 階段 1：馬 + 無頭騎士 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    // 馬身
+    g.fillStyle='#3f3f46';g.beginPath();g.ellipse(64,100,32,20,0,0,Math.PI*2);g.fill();
+    // 馬腿
+    g.fillStyle='#27272a';g.fillRect(38,108,6,18);g.fillRect(54,108,6,18);g.fillRect(70,108,6,18);g.fillRect(86,108,6,18);
+    // 馬頭
+    g.fillStyle='#3f3f46';g.beginPath();g.ellipse(30,86,14,18,-.3,0,Math.PI*2);g.fill();
+    g.fillStyle='#18181b';g.beginPath();g.arc(26,80,3,0,Math.PI*2);g.fill();
+    // 馬鬃（火焰感）
+    g.fillStyle='#f97316';for(let i=0;i<5;i++){g.beginPath();g.moveTo(30-i*3,68-i*2);g.lineTo(24-i*3,58-i*2);g.lineTo(34-i*3,60-i*2);g.closePath();g.fill()}
+    // 騎士身體（無頭）
+    g.fillStyle='#1e293b';g.fillRect(54,58,24,32);
+    g.fillStyle='#475569';g.fillRect(56,60,20,10);
+    g.fillStyle='#f59e0b';g.fillRect(58,72,16,4);
+    // 手持劍
+    g.strokeStyle='#e5e7eb';g.lineWidth=3;g.beginPath();g.moveTo(84,64);g.lineTo(100,40);g.stroke();
+    g.fillStyle='#94a3b8';g.beginPath();g.moveTo(100,40);g.lineTo(104,34);g.lineTo(96,38);g.closePath();g.fill();
+    // 肩甲
+    g.fillStyle='#64748b';g.fillRect(50,58,8,14);g.fillRect(76,58,8,14);
+    bossSprites.headlessKnight_p1=c;
+  }
+  /* 無頭騎士 - 階段 2：騎士落地持頭 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    // 身體
+    g.fillStyle='#1e293b';g.fillRect(50,40,28,54);
+    g.fillStyle='#475569';g.fillRect(52,44,24,14);
+    g.fillStyle='#f59e0b';g.fillRect(54,60,20,5);
+    // 腿
+    g.fillStyle='#0f172a';g.fillRect(52,94,10,26);g.fillRect(66,94,10,26);
+    // 左手持頭顱
+    g.fillStyle='#3f3f46';g.fillRect(28,52,10,40);
+    g.fillStyle='#e5e7eb';g.beginPath();g.arc(28,44,12,0,Math.PI*2);g.fill();
+    g.fillStyle='#18181b';g.beginPath();g.arc(24,42,2.5,0,Math.PI*2);g.fill();g.beginPath();g.arc(32,42,2.5,0,Math.PI*2);g.fill();
+    g.fillStyle='#f97316';g.beginPath();g.arc(24,42,1,0,Math.PI*2);g.fill();g.beginPath();g.arc(32,42,1,0,Math.PI*2);g.fill();
+    // 右手劍
+    g.strokeStyle='#e5e7eb';g.lineWidth=3;g.beginPath();g.moveTo(82,60);g.lineTo(104,30);g.stroke();
+    g.fillStyle='#94a3b8';g.beginPath();g.moveTo(104,30);g.lineTo(108,24);g.lineTo(100,28);g.closePath();g.fill();
+    // 火焰光環
+    g.fillStyle='#f9731688';g.beginPath();g.arc(64,80,50,0,Math.PI*2);g.fill();
+    bossSprites.headlessKnight_p2=c;
+  }
+  /* 暗黑騎士 - 階段 1：黑鐵盔甲 + 單劍 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#18181b';g.fillRect(46,42,36,58);
+    g.fillStyle='#3f3f46';g.fillRect(48,46,32,16);
+    g.fillStyle='#0f172a';g.fillRect(54,48,20,10);
+    g.fillStyle='#dc2626';g.fillRect(58,52,4,3);g.fillRect(68,52,4,3);
+    g.fillStyle='#0f172a';g.fillRect(46,100,14,20);g.fillRect(68,100,14,20);
+    g.fillStyle='#3f3f46';g.fillRect(40,46,8,18);g.fillRect(80,46,8,18);
+    g.strokeStyle='#a1a1aa';g.lineWidth=4;g.beginPath();g.moveTo(86,64);g.lineTo(104,36);g.stroke();
+    g.fillStyle='#71717a';g.beginPath();g.moveTo(104,36);g.lineTo(110,28);g.lineTo(100,32);g.closePath();g.fill();
+    g.strokeStyle='#dc2626';g.lineWidth=2;g.beginPath();g.arc(64,70,30,0,Math.PI*2);g.stroke();
+    bossSprites.darkKnight_p1=c;
+  }
+  /* 暗黑騎士 - 階段 2：盔甲碎裂 + 雙劍 + 紅眼 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#18181b';g.fillRect(46,42,36,58);
+    // 裂痕
+    g.strokeStyle='#dc2626';g.lineWidth=1.5;g.beginPath();g.moveTo(50,60);g.lineTo(56,72);g.lineTo(52,84);g.stroke();
+    g.beginPath();g.moveTo(78,56);g.lineTo(72,70);g.lineTo(76,86);g.stroke();
+    g.fillStyle='#27272a';g.fillRect(48,46,32,16);
+    g.fillStyle='#0f172a';g.fillRect(54,48,20,10);
+    g.fillStyle='#ff0000';g.fillRect(58,52,4,3);g.fillRect(68,52,4,3);
+    g.fillStyle='#0f172a';g.fillRect(46,100,14,20);g.fillRect(68,100,14,20);
+    g.fillStyle='#27272a';g.fillRect(40,46,8,18);g.fillRect(80,46,8,18);
+    // 雙劍
+    g.strokeStyle='#a1a1aa';g.lineWidth=4;g.beginPath();g.moveTo(86,64);g.lineTo(104,36);g.stroke();
+    g.beginPath();g.moveTo(42,64);g.lineTo(24,36);g.stroke();
+    g.fillStyle='#71717a';g.beginPath();g.moveTo(104,36);g.lineTo(110,28);g.lineTo(100,32);g.closePath();g.fill();
+    g.beginPath();g.moveTo(24,36);g.lineTo(18,28);g.lineTo(28,32);g.closePath();g.fill();
+    g.strokeStyle='#ff0000';g.lineWidth=3;g.beginPath();g.arc(64,70,32,0,Math.PI*2);g.stroke();
+    bossSprites.darkKnight_p2=c;
+  }
+  /* 暗黑騎士 - 階段 3：黑焰環繞 + 大劍 + 全屬性 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    // 黑焰背景
+    for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2,r=30+Math.random()*25;g.fillStyle=`rgba(124,58,237,${.3+Math.random()*.4})`;g.beginPath();g.arc(64+Math.cos(a)*r,64+Math.sin(a)*r,6+Math.random()*8,0,Math.PI*2);g.fill()}
+    g.fillStyle='#0a0a0a';g.fillRect(46,42,36,58);
+    g.fillStyle='#1c1917';g.fillRect(48,46,32,16);
+    g.fillStyle='#0f172a';g.fillRect(54,48,20,10);
+    g.fillStyle='#ff0000';g.fillRect(58,52,4,3);g.fillRect(68,52,4,3);
+    g.fillStyle='#3f3f46';g.fillRect(46,100,14,20);g.fillRect(68,100,14,20);
+    g.fillStyle='#1c1917';g.fillRect(38,44,10,22);g.fillRect(80,44,10,22);
+    // 大劍
+    g.strokeStyle='#dc2626';g.lineWidth=6;g.beginPath();g.moveTo(88,60);g.lineTo(112,20);g.stroke();
+    g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(88,60);g.lineTo(112,20);g.stroke();
+    g.fillStyle='#dc2626';g.beginPath();g.moveTo(112,20);g.lineTo(120,10);g.lineTo(106,18);g.closePath();g.fill();
+    // 頭盔火焰
+    g.fillStyle='#7c3aed';g.beginPath();g.moveTo(46,42);g.lineTo(40,30);g.lineTo(52,36);g.closePath();g.fill();
+    g.beginPath();g.moveTo(82,42);g.lineTo(88,30);g.lineTo(76,36);g.closePath();g.fill();
+    bossSprites.darkKnight_p3=c;
+  }
+  /* 虛空巨鯨 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#0c4a6e';g.beginPath();g.moveTo(8,70);g.quadraticCurveTo(30,30,74,34);g.quadraticCurveTo(112,38,118,66);g.quadraticCurveTo(96,96,60,94);g.quadraticCurveTo(22,92,8,70);g.closePath();g.fill();
+    g.fillStyle='#0ea5e9';g.beginPath();g.moveTo(14,70);g.quadraticCurveTo(34,40,74,42);g.quadraticCurveTo(104,46,110,68);g.quadraticCurveTo(90,88,58,86);g.quadraticCurveTo(28,84,14,70);g.closePath();g.fill();
+    g.fillStyle='#bae6fd';g.beginPath();g.arc(44,62,7,0,Math.PI*2);g.fill();
+    g.fillStyle='#082f49';g.beginPath();g.arc(44,62,3.4,0,Math.PI*2);g.fill();
+    g.fillStyle='#7dd3fc';for(let i=0;i<7;i++){g.beginPath();g.arc(24+Math.random()*80,20+Math.random()*24,1.6,0,Math.PI*2);g.fill()}
+    g.strokeStyle='#e0f2fe';g.lineWidth=2;g.beginPath();g.moveTo(70,88);g.lineTo(96,112);g.stroke();
+    bossSprites.voidWhale=c;
+  }
+  /* 機械暴君 */
+  {const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
+    g.fillStyle='#334155';g.fillRect(24,30,80,74);
+    g.fillStyle='#64748b';g.fillRect(32,38,64,40);
+    g.fillStyle='#0f172a';g.fillRect(38,46,52,14);
+    g.fillStyle='#ff2d55';g.fillRect(44,50,14,7);g.fillRect(72,50,14,7);
+    g.fillStyle='#94a3b8';g.fillRect(20,16,88,14);
+    g.fillStyle='#f87171';g.fillRect(26,20,10,6);g.fillRect(60,20,10,6);g.fillRect(94,20,10,6);
+    g.fillStyle='#475569';g.fillRect(30,84,20,26);g.fillRect(78,84,20,26);
+    g.fillStyle='#facc15';g.fillRect(52,84,24,10);
+    bossSprites.mechTyrant=c;
+  }
+}
 buildBossSprites();
+
+/* 依波次取得對應 BOSS（固定順序） */
+function bossForWave(w){const idx=Math.floor(w/5)-1;return idx>=0&&idx<BOSS_ORDER.length?BOSS_ORDER[idx]:BOSS_ORDER[Math.floor(Math.random()*BOSS_ORDER.length)]}
 
 /* ===== 設定與音效 ===== */
 const settings={sound:true,volume:.65,effects:1};try{Object.assign(settings,JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'))}catch(e){}
 const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');let audioCtx=null;
 function initAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}
 function playSound(type){if(!settings.sound||settings.volume<=0)return;initAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;let duration=.09;o.connect(g);g.connect(audioCtx.destination);if(type==='playerHit'){duration=.24;o.type='sawtooth';o.frequency.setValueAtTime(105,t);o.frequency.exponentialRampToValueAtTime(42,t+duration)}else if(type==='coin'){duration=.2;o.type='triangle';o.frequency.setValueAtTime(620,t);o.frequency.exponentialRampToValueAtTime(1180,t+duration)}else{o.type=type==='enemyHit'||type==='hit'?'sawtooth':'triangle';o.frequency.setValueAtTime(type==='enemyHit'?230:type==='hit'?180:420,t)}g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((type==='playerHit'?.16:.08)*settings.volume,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.start(t);o.stop(t+duration+.01)}catch(e){}}
-
-/* 【平板優化】DPR 上限 1.5 + 邏輯座標統一使用 innerWidth/innerHeight */
 function resizeCanvas(){const dpr=Math.min(window.devicePixelRatio||1,1.5);const w=innerWidth,h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
 addEventListener('resize',resizeCanvas);resizeCanvas();
 
@@ -138,6 +339,9 @@ addEventListener('resize',resizeCanvas);resizeCanvas();
 let gameState='START',wave=1,waveTimer=20,timerInterval=null,kills=0,enemySpawnCounter=0,shopChoiceIds=[],shopChoiceIds2=[],purchasedItemIds=[],purchasedItemIds2=[],shopRerollCount=0,classId='archer',weaponId='bow',pendingPetUpgrades=0;
 let gameMode='solo',player2=null,dualClassId1='archer',dualWeaponId1='bow',dualClassId2='berserker',dualWeaponId2='sword',pvpWinner=0;
 let isBossWave=false;
+let bossBullets=[];
+let bossIntro=null;
+let bossPhaseTagTimer=0;
 let playerIdCounter=0;
 
 function newPlayer(cid,customLevels){
@@ -158,31 +362,139 @@ function startInvulnerability(frames=TRANSITION_INVULNERABILITY_FRAMES){for(cons
 function clampPlayerSpeed(){for(const p of activePlayers()){p.speedCap=clamp(Number(p.speedCap)||4,0,PLAYER_SPEED_CAP_MAX);p.speed=clamp(Number(p.speed)||0,0,p.speedCap)}}
 function speedValueLabel(value){return Number(value||0).toFixed(1)}
 
-/* ===== UI 渲染 ===== */
-function showMenu(id){document.querySelectorAll('.modal-overlay').forEach(el=>el.style.display='none');const el=document.getElementById(id);if(el)el.style.display='flex'}
-function renderChoices(){
-  document.getElementById('classChoices').innerHTML=classes.map(c=>`<button class="choice-card ${classId===c.id?'selected':''}" data-job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.desc}</small></button>`).join('');
-  document.getElementById('weaponChoices').innerHTML=weapons.map(w=>{const ws=weaponStats(w);return `<button class="weapon-card ${weaponId===w.id?'selected':''}" data-weapon="${w.id}"><strong>${w.name} Lv.${ws.level} ${WEAPON_TIER_NAMES[ws.level-1]}</strong><small>${w.desc}<br>傷害 x${ws.damage.toFixed(2)} · 距離 ${Math.round(ws.range)} · 間隔 ${ws.cooldown.toFixed(0)} 幀</small></button>`}).join('');
-  document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{classId=b.dataset.job;renderChoices()});
-  document.querySelectorAll('[data-weapon]').forEach(b=>b.onclick=()=>{weaponId=b.dataset.weapon;renderChoices()})
+/* ===== 工具 ===== */
+function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
+function enemyInView(e){return e.x>=0&&e.x<=innerWidth&&e.y>=0&&e.y<=innerHeight}
+function nearestEnemy(x,y,r){let t=null,b=r;for(const e of enemies){if(!enemyInView(e))continue;const d=Math.hypot(e.x-x,e.y-y);if(d<b){b=d;t=e}}return t}
+function nearestTarget(x,y,r,list){let t=null,b=r;for(const e of (list||enemies)){if(!e||e.dead)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<b){b=d;t=e}}return t}
+function spawnParticles(x,y,color,n=6,spread=1){const s=Math.max(.25,settings.effects);for(let i=0;i<Math.round(n*s);i++){const a=Math.random()*Math.PI*2,v=(Math.random()*3+1)*spread*s;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,color,radius:Math.random()*3+1,decay:.015+Math.random()*.025})}}
+function addDamageNumber(x,y,text,color='#fff',critical=false){damageNumbers.push({x,y,text,life:1,vy:-1.2,color,critical})}
+
+/* ===== BOSS 出場動畫 ===== */
+function showPhaseTag(text){
+  const el=document.getElementById('bossPhaseTag');
+  el.textContent=text;el.classList.add('show');bossPhaseTagTimer=120;
 }
-function renderDualChoices(){
-  const mk=(gid,cur,list,render)=>document.getElementById(gid).innerHTML=list.map(x=>render(x,cur===x.id)).join('');
-  mk('p1ClassChoices',dualClassId1,classes,(c,sel)=>`<button class="choice-card ${sel?'selected':''}" data-p1job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.skillName}</small></button>`);
-  mk('p2ClassChoices',dualClassId2,classes,(c,sel)=>`<button class="choice-card ${sel?'selected':''}" data-p2job="${c.id}"><strong>${c.name} Lv.${cLevel(c.id)}</strong><small>${c.skillName}</small></button>`);
-  mk('p1WeaponChoices',dualWeaponId1,weapons,(w,sel)=>`<button class="weapon-card ${sel?'selected':''}" data-p1w="${w.id}"><strong>${w.name}</strong><small>Lv.${wLevel(w.id)}</small></button>`);
-  mk('p2WeaponChoices',dualWeaponId2,weapons,(w,sel)=>`<button class="weapon-card ${sel?'selected':''}" data-p2w="${w.id}"><strong>${w.name}</strong><small>Lv.${wLevel(w.id)}</small></button>`);
-  document.querySelectorAll('[data-p1job]').forEach(b=>b.onclick=()=>{dualClassId1=b.dataset.p1job;renderDualChoices()});
-  document.querySelectorAll('[data-p2job]').forEach(b=>b.onclick=()=>{dualClassId2=b.dataset.p2job;renderDualChoices()});
-  document.querySelectorAll('[data-p1w]').forEach(b=>b.onclick=()=>{dualWeaponId1=b.dataset.p1w;renderDualChoices()});
-  document.querySelectorAll('[data-p2w]').forEach(b=>b.onclick=()=>{dualWeaponId2=b.dataset.p2w;renderDualChoices()});
+function startBossIntro(e){
+  bossIntro={boss:e,phase:'walk',walkTimer:110,nameTimer:0,startX:e.x,startY:e.y,targetX:innerWidth/2,targetY:innerHeight*0.42};
+  gameState='BOSS_INTRO';
+  e.invulnerable=true;
+  const ov=document.getElementById('bossIntroOverlay');
+  ov.classList.add('active');
+  document.getElementById('bossIntroName').textContent=e.bossName||'BOSS';
+  document.getElementById('bossIntroName').classList.remove('show');
+  document.getElementById('bossIntroSub').classList.remove('show');
 }
-function renderSkins(){document.getElementById('skinChoices').innerHTML=skinList.map(s=>`<button class="skin-card ${currentSkinId===s.id?'selected':''}" data-skin="${s.id}">${s.id==='summer_skin'?'<img class="skin-preview" src="'+summerSkinImg.src+'" alt="皮膚預覽">':'<span class="skin-preview" style="height:90px;display:grid;place-items:center;font-size:42px">🥔</span>'}<strong>${s.name}</strong><small>${s.desc}</small></button>`).join('');document.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{currentSkinId=b.dataset.skin;saveSelectedSkin();renderSkins()})}
-function renderForge(){document.getElementById('forgeMat').textContent=meta.weaponMat;document.getElementById('forgeGrid').innerHTML=weapons.map(w=>{const lv=wLevel(w.id),cost=weaponUpgradeCost(w.id),maxed=lv>=MAX_WLV,ws=weaponStats(w);return `<button class="weapon-card" data-forge="${w.id}" ${maxed?'disabled':''} style="border-color:${ws.color}"><strong style="color:${ws.color}">${w.name} Lv.${lv} ${maxed?'【進化】':'· '+WEAPON_TIER_NAMES[lv-1]}</strong><small>傷害 x${ws.damage.toFixed(2)}<br>距離 ${Math.round(ws.range)} · 間隔 ${ws.cooldown.toFixed(0)} 幀<br>${maxed?'已達最高等級(進化)':'升級需要 '+cost+' 武器素材'}</small></button>`}).join('');document.querySelectorAll('[data-forge]').forEach(b=>b.onclick=()=>{const id=b.dataset.forge,lv=wLevel(id);if(lv>=MAX_WLV)return;const cost=weaponUpgradeCost(id);if(meta.weaponMat<cost)return;meta.weaponMat-=cost;meta.weaponLevels[id]=lv+1;saveMeta();renderForge();playSound('coin')})}
-function renderChar(){document.getElementById('charMat').textContent=meta.charMat;document.getElementById('charGrid').innerHTML=classes.map(c=>{const lv=cLevel(c.id),cost=charUpgradeCost(c.id),maxed=lv>=MAX_CLV,b=charBonus(c.id);return `<button class="choice-card" data-char="${c.id}" ${maxed?'disabled':''}><strong>${c.name} Lv.${lv}</strong><small>生命 +${Math.round((b.hp-1)*100)}% · 傷害 +${Math.round((b.dmg-1)*100)}% · 速度 +${Math.round((b.spd-1)*100)}%<br>技能：${c.skillName}<br>${maxed?'已達最高等級':'升級需要 '+cost+' 角色靈魂'}</small></button>`}).join('');document.querySelectorAll('[data-char]').forEach(b=>b.onclick=()=>{const id=b.dataset.char,lv=cLevel(id);if(lv>=MAX_CLV)return;const cost=charUpgradeCost(id);if(meta.charMat<cost)return;meta.charMat-=cost;meta.charLevels[id]=lv+1;saveMeta();renderChar();playSound('coin')})}
-function generateCode(){const data={w:meta.weaponLevels,c:meta.charLevels};try{return btoa(JSON.stringify(data))}catch(e){return ""}}
-function importCode(code){if(!code)return false;try{const data=JSON.parse(atob(code));if(data.w)meta.weaponLevels=data.w;if(data.c)meta.charLevels=data.c;saveMeta();renderForge();renderChar();return true}catch(e){return false}}
-function parseCodeToLevels(code){if(!code)return {w:{},c:{}};try{const data=JSON.parse(atob(code));return {w:data.w||{},c:data.c||{}}}catch(e){return {w:{},c:{}}}}
+function updateBossIntro(){
+  if(!bossIntro)return;
+  const b=bossIntro.boss;
+  if(bossIntro.phase==='walk'){
+    const t=1-Math.max(0,bossIntro.walkTimer)/110;
+    b.x=bossIntro.startX+(bossIntro.targetX-bossIntro.startX)*Math.min(1,t);
+    b.y=bossIntro.startY+(bossIntro.targetY-bossIntro.startY)*Math.min(1,t);
+    bossIntro.walkTimer--;
+    if(Math.random()<.5)spawnParticles(b.x,b.y+30,b.color,2,.8);
+    if(bossIntro.walkTimer<=0){
+      bossIntro.phase='name';bossIntro.nameTimer=95;
+      document.getElementById('bossIntroName').classList.add('show');
+      document.getElementById('bossIntroSub').classList.add('show');
+      playSound('playerHit');
+    }
+  }else if(bossIntro.phase==='name'){
+    bossIntro.nameTimer--;
+    if(bossIntro.nameTimer<=0){
+      b.invulnerable=false;
+      document.getElementById('bossIntroOverlay').classList.remove('active');
+      gameState='PLAYING';
+      bossIntro=null;
+      startTimer();
+    }
+  }
+}
+
+/* ===== BOSS 彈幕生成 ===== */
+function addBossBullet(x,y,angle,speed,damage,radius,color,opts={}){
+  bossBullets.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,damage,radius,color,life:opts.life||180,homing:opts.homing||false,homingRate:opts.homingRate||0.008,owner:opts.owner||null,trail:opts.trail!==false});
+}
+function bossPattern_radial(boss,n,speed,dmg,color,offset=0){
+  for(let i=0;i<n;i++){const a=offset+Math.PI*2*i/n;addBossBullet(boss.x,boss.y,a,speed,dmg,7,color,{owner:boss})}
+}
+function bossPattern_spiral(boss,baseAngle,arms,speed,dmg,color){
+  for(let i=0;i<arms;i++){const a=baseAngle+Math.PI*2*i/arms;addBossBullet(boss.x,boss.y,a,speed,dmg,6,color,{owner:boss})}
+}
+function bossPattern_homing(boss,n,speed,dmg,color,spread=0.6){
+  const tgt=nearestPlayer(boss.x,boss.y);if(!tgt)return;
+  const base=Math.atan2(tgt.y-boss.y,tgt.x-boss.x);
+  for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*spread/n;addBossBullet(boss.x,boss.y,a,speed,dmg,8,color,{owner:boss,homing:true,homingRate:0.012})}
+}
+function bossPattern_bloom(boss,speed,dmg,color){
+  for(let ring=0;ring<3;ring++){
+    const n=8+ring*4,off=ring*0.25;
+    for(let i=0;i<n;i++){const a=off+Math.PI*2*i/n;addBossBullet(boss.x,boss.y,a,speed*(0.8+ring*0.2),dmg*(1-ring*0.15),6-ring,color,{owner:boss})}
+  }
+}
+
+/* ===== 依 BOSS 階段施放彈幕/技能 ===== */
+function updateBossSkill(e){
+  if(e.skillCd>0){e.skillCd--;return}
+  const tgt=nearestPlayer(e.x,e.y);if(!tgt)return;
+  const phase=e.bossPhase||1;
+  const dmgBase=e.damage*0.9;
+  switch(e.bossType){
+    case 'slime':
+      bossPattern_radial(e,10,4.5,dmgBase*0.7,'#4ade80',Math.random()*Math.PI);
+      addBossZone(tgt.x,tgt.y,80,62,e.damage*2.2,e,'#4ade80');
+      e.skillCd=Math.max(90,170-wave*2);break;
+    case 'boneKing':
+      bossPattern_radial(e,12,5,dmgBase*0.75,'#e5e7eb');
+      bossPattern_homing(e,3,4,dmgBase*0.9,'#fbbf24',0.8);
+      e.skillCd=Math.max(100,160-wave*2);break;
+    case 'zulan':{
+      const a=Math.atan2(tgt.y-e.y,tgt.x-e.x);
+      addBossBeam(e.x,e.y,a,620,34,52,e.damage*1.8,e,'#a78bfa');
+      bossPattern_homing(e,3,4.2,dmgBase*0.6,'#c4b5fd',0.6);
+      e.skillCd=Math.max(100,170-wave*2);break;
+    }
+    case 'lavaDragons':{
+      const a=Math.atan2(tgt.y-e.y,tgt.x-e.x);
+      for(let i=0;i<7;i++){const aa=a+(i-3)*.16;addBossBullet(e.x,e.y,aa,5,dmgBase*0.9,9,'#fb923c',{owner:e})}
+      addBossZone(tgt.x,tgt.y,55,50,e.damage*1.2,e,'#f97316');
+      e.skillCd=Math.max(90,150-wave*2);break;
+    }
+    case 'headlessKnight':
+      if(phase===1){
+        bossPattern_radial(e,8,4.5,dmgBase*0.6,'#94a3b8');
+        bossPattern_spiral(e,skillFrame*0.03,3,4.8,dmgBase*0.8,'#f97316');
+        e.skillCd=Math.max(90,150-wave*2);
+      }else{
+        bossPattern_homing(e,5,5.5,dmgBase*1.0,'#f97316',0.9);
+        bossPattern_spiral(e,skillFrame*0.05,4,5,dmgBase*0.8,'#fbbf24');
+        e.skillCd=Math.max(80,130-wave*2);
+      }
+      break;
+    case 'darkKnight':
+      if(phase===1){
+        bossPattern_radial(e,10,4.5,dmgBase*0.8,'#dc2626');
+      }else if(phase===2){
+        bossPattern_radial(e,14,5,dmgBase*0.9,'#dc2626');
+        bossPattern_homing(e,4,5,dmgBase*1.0,'#ff0000',0.7);
+      }else{
+        bossPattern_bloom(e,4.8,dmgBase*0.9,'#7c3aed');
+        bossPattern_homing(e,6,5.5,dmgBase*1.1,'#ff0000',1.0);
+        bossPattern_spiral(e,skillFrame*0.06,6,5.5,dmgBase*0.8,'#a855f7');
+      }
+      e.skillCd=Math.max(80,150-wave*2-phase*20);break;
+    case 'voidWhale':
+      addBossZone(e.x,e.y,140,70,e.damage*2.5,e,'#38bdf8');
+      bossPattern_bloom(e,3.8,dmgBase*0.8,'#38bdf8');
+      for(const p of alivePlayers()){const d=Math.hypot(p.x-e.x,p.y-e.y)||1;if(d<420){p.pullX=(e.x-p.x)/d;p.pullY=(e.y-p.y)/d;p.pullTimer=55}}
+      e.skillCd=Math.max(120,190-wave*2);break;
+    default:
+      for(let i=0;i<4;i++){const ox=(Math.random()-.5)*280,oy=(Math.random()-.5)*280;addBossZone(clamp(tgt.x+ox,20,innerWidth-20),clamp(tgt.y+oy,20,innerHeight-20),58,60+i*10,e.damage*1.4,e,'#f87171')}
+      bossPattern_bloom(e,4.5,dmgBase*0.85,'#f87171');
+      e.skillCd=Math.max(110,180-wave*2);break;
+  }
+}
 
 /* ===== 商店道具 ===== */
 const itemPool=[
@@ -207,14 +519,6 @@ const itemPool=[
 {id:'drone',title:'環繞無人機',desc:'增加一架環繞玩家、會自動攻擊敵人的無人機。',price:60,apply:p=>p.droneCount=(p.droneCount||0)+1},
 {id:'turret',title:'固定炮台',desc:'在地圖隨機位置產生固定炮台，發射炮彈或雷電。',price:75,apply:p=>{p.turretCount=(p.turretCount||0)+1;turrets.push({x:clamp(Math.random()*innerWidth,25,innerWidth-25),y:clamp(Math.random()*innerHeight,25,innerHeight-25),cooldown:30,lightning:false})}}
 ];
-
-/* ===== 工具 ===== */
-function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
-function enemyInView(e){return e.x>=0&&e.x<=innerWidth&&e.y>=0&&e.y<=innerHeight}
-function nearestEnemy(x,y,r){let t=null,b=r;for(const e of enemies){if(!enemyInView(e))continue;const d=Math.hypot(e.x-x,e.y-y);if(d<b){b=d;t=e}}return t}
-function nearestTarget(x,y,r,list){let t=null,b=r;for(const e of (list||enemies)){if(!e||e.dead)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<b){b=d;t=e}}return t}
-function spawnParticles(x,y,color,n=6,spread=1){const s=Math.max(.25,settings.effects);for(let i=0;i<Math.round(n*s);i++){const a=Math.random()*Math.PI*2,v=(Math.random()*3+1)*spread*s;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,color,radius:Math.random()*3+1,decay:.015+Math.random()*.025})}}
-function addDamageNumber(x,y,text,color='#fff',critical=false){damageNumbers.push({x,y,text,life:1,vy:-1.2,color,critical})}
 
 /* ===== 斬擊特效 ===== */
 function addSlash(x,y,angle,length,ttl=.16,width=14,color='#ffd700',type='knife',evolved=false){
@@ -250,7 +554,7 @@ function drawSlash(s){
   ctx.restore();
 }
 
-/* ===== 怪物生成（第一份公式：wave^wave + 雙人 ×1.8 + 速度 11 波起提升） ===== */
+/* ===== 怪物生成（含防禦、BOSS ×2.5、固定順序） ===== */
 function makeEnemy(type,x,y){
   const boss=type==='boss',elite=type==='elite';
   const dualMul=player2?1.8:1;
@@ -261,53 +565,65 @@ function makeEnemy(type,x,y){
   const hp=(boss?1800+wave*260:elite?260+wave*85:35+wave*18)*hpScale,
         radius=(boss?36:elite?25:(Math.random()<.25?12:16))*radiusBoost,
         speed=(boss?.8:elite?1.15:(Math.random()<.18?2.4:1.6)+wave*.05)*speedScale;
-  const e={x,y,type,radius,hp,maxHp:hp,speed,color:boss?'#c86bff':elite?'#ff9d42':'#ff3366',damage:(boss?26:elite?18:8+wave*.4)*damageScale,cooldown:elite?20+Math.random()*18:boss?50+Math.random()*30:0,attack:null,hitCooldown:0,playerHitCooldowns:{}};
+  const e={x,y,type,radius,hp,maxHp:hp,speed,color:boss?'#c86bff':elite?'#ff9d42':'#ff3366',damage:(boss?26:elite?18:8+wave*.4)*damageScale,cooldown:elite?20+Math.random()*18:boss?50+Math.random()*30:0,attack:null,hitCooldown:0,playerHitCooldowns:{},defense:0,invulnerable:false,bossPhase:1};
+  if(elite)e.defense=0.02;
   if(boss){
-    const idx=(Math.floor(wave/5)-1+BOSS_ORDER.length*10)%BOSS_ORDER.length;
-    const bt=BOSS_ORDER[idx>=0?idx:0];
+    const bt=bossForWave(wave);
     const def=BOSS_DEFS[bt];
-    e.bossType=bt;e.bossName=def.name;e.hp*=def.hpMul;e.maxHp=e.hp;e.damage*=def.dmgMul;e.speed*=def.speed;e.color=def.color;
-    e.skillCd=90;e.bossStep=0;
+    e.bossType=bt;e.bossName=def.name;
+    e.hp*=def.hpMul*2.5;e.maxHp=e.hp;
+    e.damage*=def.dmgMul*1.3;
+    e.speed*=def.speed;
+    e.color=def.color;
+    e.defense=def.defense||0.15;
+    e.skillCd=90;e.summonCd=def.summonCd||150;
+    if(bt==='headlessKnight'){e.horseHp=e.hp*0.5;e.horseMaxHp=e.horseHp}
   }
   return e;
 }
 function spawnEnemy(type='normal'){const a=Math.random()*Math.PI*2,d=Math.max(innerWidth,innerHeight)/2+70;const cx=innerWidth/2,cy=innerHeight/2;enemies.push(makeEnemy(type,cx+Math.cos(a)*d,cy+Math.sin(a)*d))}
-
-/* ===== BOSS 技能 ===== */
-function addBossZone(x,y,r,dur,dmg,owner,color){bossZones.push({x,y,r,t:0,dur,dmg,owner,color:color||'#c86bff',fired:false})}
-function addBossBeam(x,y,angle,len,width,dur,dmg,owner,color){bossBeams.push({x,y,angle,len,width,t:0,dur,dmg,owner,color:color||'#a78bfa',fired:false})}
-function updateBossSkill(e){
-  if(e.skillCd>0){e.skillCd--;return}
-  const tgt=nearestPlayer(e.x,e.y);if(!tgt)return;
-  switch(e.bossType){
-    case 'slime':addBossZone(tgt.x,tgt.y,80,62,e.damage*2.2,e,'#4ade80');e.skillCd=Math.max(90,170-wave*2);break;
-    case 'boneKing':{const n=8;for(let i=0;i<n;i++){const a=Math.PI*2/n*i+Math.random()*.2;bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*5.5,vy:Math.sin(a)*5.5,damage:e.damage*.8,radius:6,color:'#e5e7eb',shape:'orb',crit:false,life:150,hostile:true,owner:e})}if(wave>=10&&enemies.length<12){spawnEnemy('normal');spawnEnemy('normal')}e.skillCd=Math.max(90,150-wave*2);break}
-    case 'zulan':{const a=Math.atan2(tgt.y-e.y,tgt.x-e.x);addBossBeam(e.x,e.y,a,620,34,52,e.damage*1.8,e,'#a78bfa');for(let i=0;i<3;i++){const aa=a+(i-1)*.5;bullets.push({x:e.x,y:e.y,vx:Math.cos(aa)*4.5,vy:Math.sin(aa)*4.5,damage:e.damage*.6,radius:7,color:'#c4b5fd',shape:'orb',crit:false,life:160,hostile:true,owner:e})}e.skillCd=Math.max(100,170-wave*2);break}
-    case 'lavaDragons':{const a=Math.atan2(tgt.y-e.y,tgt.x-e.x);for(let i=0;i<5;i++){const aa=a+(i-2)*.22;bullets.push({x:e.x,y:e.y,vx:Math.cos(aa)*5,vy:Math.sin(aa)*5,damage:e.damage*.9,radius:9,color:'#fb923c',shape:'orb',crit:false,life:170,hostile:true,owner:e,splashPlayer:true})}addBossZone(tgt.x,tgt.y,55,50,e.damage*1.2,e,'#f97316');e.skillCd=Math.max(90,150-wave*2);break}
-    case 'voidWhale':{addBossZone(e.x,e.y,140,70,e.damage*2.5,e,'#38bdf8');for(const p of alivePlayers()){const d=Math.hypot(p.x-e.x,p.y-e.y)||1;if(d<420){p.pullX=(e.x-p.x)/d;p.pullY=(e.y-p.y)/d;p.pullTimer=55}}e.skillCd=Math.max(120,190-wave*2);break}
-    default:{for(let i=0;i<3;i++){const ox=(Math.random()-.5)*260,oy=(Math.random()-.5)*260;addBossZone(clamp(tgt.x+ox,20,innerWidth-20),clamp(tgt.y+oy,20,innerHeight-20),58,60+i*14,e.damage*1.4,e,'#f87171')}e.skillCd=Math.max(110,180-wave*2);break}
-  }
+function spawnBossForWave(){
+  const cx=innerWidth/2,cy=innerHeight/2,d=Math.max(innerWidth,innerHeight)*0.7;
+  const a=Math.random()*Math.PI*2;
+  const boss=makeEnemy('boss',cx+Math.cos(a)*d,cy+Math.sin(a)*d);
+  enemies.push(boss);
+  return boss;
 }
 
-/* ===== 波次與遊戲流程 ===== */
+/* ===== BOSS 技能區/光束 ===== */
+function addBossZone(x,y,r,dur,dmg,owner,color){bossZones.push({x,y,r,t:0,dur,dmg,owner,color:color||'#c86bff',fired:false})}
+function addBossBeam(x,y,angle,len,width,dur,dmg,owner,color){bossBeams.push({x,y,angle,len,width,t:0,dur,dmg,owner,color:color||'#a78bfa',fired:false})}
+
+/* ===== 波次初始化（BOSS 出場動畫、非 BOSS 30 秒上限） ===== */
 function initWave(){
   isBossWave=(wave%5===0);
   if(player2){player.x=innerWidth*.42;player.y=innerHeight/2;player2.x=innerWidth*.58;player2.y=innerHeight/2}
   else{player.x=innerWidth/2;player.y=innerHeight/2}
-  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];
-  enemySpawnCounter=0;gameState='PLAYING';
+  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];bossBullets=[];
+  enemySpawnCounter=0;bossPhaseTagTimer=0;
   for(const p of activePlayers()){p.dead=false;p.respawnTimer=0}
   startInvulnerability();
-  if(isBossWave){waveTimer=99999;spawnEnemy('boss');if(timerInterval)clearInterval(timerInterval)}
-  else{waveTimer=Math.min(40,15+wave*5);if(wave>=3&&Math.random()<.3)spawnEnemy('elite');startTimer()}
+  if(isBossWave){
+    waveTimer=99999;
+    if(timerInterval)clearInterval(timerInterval);
+    const boss=spawnBossForWave();
+    startBossIntro(boss);
+  }else{
+    waveTimer=Math.min(30,15+wave*5);
+    gameState='PLAYING';
+    if(wave>=3&&Math.random()<.3)spawnEnemy('elite');
+    startTimer();
+  }
   saveGame();
 }
 function startTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(gameState!=='PLAYING')return;if(isBossWave)return;waveTimer=Math.max(0,waveTimer-1);for(const p of activePlayers()){if(p.hpRegen>0&&p.hp<p.maxHp&&!p.dead){const before=p.hp;p.hp=Math.min(p.maxHp,p.hp+p.hpRegen);const healed=Math.round(p.hp-before);if(healed>0)addDamageNumber(p.x,p.y-30,`+${healed}`,'#35e58a')}}if(waveTimer<=0){clearInterval(timerInterval);triggerShop()}},1000)}
+
+/* ===== 遊戲開始 ===== */
 function startGame(){
   initAudio();try{localStorage.removeItem(SAVE_KEY)}catch(e){}
   gameMode='solo';player2=null;wave=1;kills=0;enemySpawnCounter=0;shopRerollCount=0;pendingPetUpgrades=0;
   player=newPlayer(classId);player.weaponId=weaponId;
-  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];skillFrame=0;
+  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];bossBullets=[];skillFrame=0;bossIntro=null;
   clampPlayerSpeed();initWave();showMenu('none');updateStatsDisplay();updateHUD();
 }
 function startDual(mode,p1Levels,p2Levels){
@@ -316,7 +632,7 @@ function startDual(mode,p1Levels,p2Levels){
   player=newPlayer(dualClassId1,p1Levels);player.weaponId=dualWeaponId1;
   player2=newPlayer(dualClassId2,p2Levels);player2.weaponId=dualWeaponId2;
   player2.speedCap=player.speedCap=4;
-  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];skillFrame=0;
+  enemies=[];bullets=[];materials=[];particles=[];damageNumbers=[];slashes=[];turrets=[];lightningBeams=[];eliteFlashes=[];bossCircles=[];bossZones=[];bossBeams=[];bossBullets=[];skillFrame=0;bossIntro=null;
   if(mode==='pvp'){
     gameState='PLAYING';waveTimer=9999;isBossWave=false;
     player.x=innerWidth*.25;player.y=innerHeight/2;player2.x=innerWidth*.75;player2.y=innerHeight/2;
@@ -325,6 +641,8 @@ function startDual(mode,p1Levels,p2Levels){
     showMenu('none');updateHUD();
   }else{initWave();showMenu('none');updateStatsDisplay();updateHUD()}
 }
+
+/* ===== 商店 ===== */
 function triggerShop(){
   initAudio();shopRerollCount=0;gameState='SHOP';startInvulnerability();
   const availablePool=itemPool.filter(item=>!(item.unique&&player.permanentPurchasedIds.includes(item.id)));
@@ -388,9 +706,9 @@ function renderShop(){
       if(player.gold<item.price||isBought)return;
       player.gold-=item.price;item.apply(player);purchasedItemIds.push(id);
       if(item.unique&&!player.permanentPurchasedIds.includes(id))player.permanentPurchasedIds.push(id);
-      renderShop();updateHUD();updateStatsDisplay();saveGame();},player.gold<item.price||isBought,item.unique));
+      renderShop();updateHUD();updateStatsDisplay();saveGame();
+    },player.gold<item.price||isBought,item.unique));
   }
-
   const grid2=document.getElementById('shopGrid2');
   const title1=document.getElementById('shopP1Title');
   const title2=document.getElementById('shopP2Title');
@@ -411,8 +729,6 @@ function renderShop(){
   }else{
     grid2.style.display='none';title1.style.display='none';title2.style.display='none';goldWrap2.style.display='none';
   }
-
-  /* P1 寵物卡 */
   if(!player.petUnlocked&&wave>=10&&player.pendingPetUpgrades>0){
     grid1.appendChild(makeShopCard('解鎖寵物（P1）','花費 100 金幣解鎖環繞跟隨寵物。',100,()=>{
       if(player.gold<100||player.petUnlocked||wave<10||player.pendingPetUpgrades<=0)return;
@@ -424,7 +740,6 @@ function renderShop(){
       player.pendingPetUpgrades--;player.petLevel=(player.petLevel||0)+1;renderShop();updateHUD();updateStatsDisplay();saveGame();
     }));
   }
-  /* P2 寵物卡 */
   if(player2){
     if(!player2.petUnlocked&&wave>=10&&player2.pendingPetUpgrades>0){
       grid2.appendChild(makeShopCard('解鎖寵物（P2）','花費 100 金幣解鎖環繞跟隨寵物。',100,()=>{
@@ -438,26 +753,17 @@ function renderShop(){
       }));
     }
   }
-
   const rerollBtn=document.getElementById('rerollShopBtn'),cost=currentRerollCost();
   rerollBtn.textContent=`刷新獎勵（消耗：${cost} 金幣）`;
   rerollBtn.disabled=player.gold<cost||(player2&&player2.gold<cost);
-
   const petBtn=document.getElementById('petQuickUpgradeBtn'),canQuick=player.petUnlocked&&player.pendingPetUpgrades>0;
   petBtn.hidden=!canQuick;petBtn.disabled=!canQuick;petBtn.textContent=`一鍵升級寵物 P1（+${player.pendingPetUpgrades}）`;
   const petBtn2=document.getElementById('petQuickUpgradeBtn2'),canQuick2=!!(player2&&player2.petUnlocked&&player2.pendingPetUpgrades>0);
   petBtn2.hidden=!canQuick2;petBtn2.disabled=!canQuick2;petBtn2.textContent=`一鍵升級寵物 P2（+${player2?player2.pendingPetUpgrades:0}）`;
-
   const s1=document.getElementById('shopGold1');if(s1)s1.textContent=player.gold;
   const s2=document.getElementById('shopGold2');if(s2&&player2)s2.textContent=player2.gold;
 }
-function quickUpgradePet(which){
-  if(gameState!=='SHOP')return;
-  const p=which===2?player2:player;
-  if(!p||!p.petUnlocked||p.pendingPetUpgrades<=0)return;
-  const c=p.pendingPetUpgrades;p.pendingPetUpgrades=0;p.petLevel=(p.petLevel||0)+c;
-  renderShop();updateHUD();updateStatsDisplay();saveGame();
-}
+function quickUpgradePet(which){if(gameState!=='SHOP')return;const p=which===2?player2:player;if(!p||!p.petUnlocked||p.pendingPetUpgrades<=0)return;const c=p.pendingPetUpgrades;p.pendingPetUpgrades=0;p.petLevel=(p.petLevel||0)+c;renderShop();updateHUD();updateStatsDisplay();saveGame()}
 function startNextWave(){wave++;document.getElementById('shopMenu').style.display='none';initWave()}
 function gameOver(){
   if(gameMode==='pvp')return;
@@ -480,10 +786,10 @@ function updateHUD(){
   else{document.getElementById('hud-timer').textContent=`${Math.max(0,waveTimer)}s`;document.getElementById('hud-timer').style.color='#fc0'}
   document.getElementById('lowHealthVignette').classList.toggle('active',player.hp>0&&player.hp/player.maxHp<.2);
   const sb=document.getElementById('skillBtn');
-  if(sb){const on=gameState==='PLAYING';sb.classList.toggle('on',on);
+  if(sb){const on=gameState==='PLAYING'||gameState==='BOSS_INTRO';sb.classList.toggle('on',on);
     if(on){const job=classes.find(c=>c.id===player.classId);const ready=player.skillCd<=0;sb.classList.toggle('cool',!ready);sb.textContent=ready?(job?job.skillName:'技能'):Math.ceil(player.skillCd/60)+'s'}}
   const sb2=document.getElementById('skillBtn2');
-  if(sb2){const on=gameState==='PLAYING'&&!!player2;sb2.classList.toggle('on',on);
+  if(sb2){const on=(gameState==='PLAYING'||gameState==='BOSS_INTRO')&&!!player2;sb2.classList.toggle('on',on);
     if(on&&player2){const job=classes.find(c=>c.id===player2.classId);const ready=player2.skillCd<=0;sb2.classList.toggle('cool',!ready);sb2.textContent=ready?(job?job.skillName:'P2技能'):Math.ceil(player2.skillCd/60)+'s'}}
 }
 function truthDamageMultiplier(p){p=p||player;return 1+Math.max(0,Number(p.truthLevel)||(p.truthUnlocked?1:0))}
@@ -497,15 +803,28 @@ function updateStatsDisplay(){
   const metaGroups=[{title:'基本',items:groups.basic},{title:'戰鬥',items:groups.combat},{title:'生存',items:groups.survival},{title:'收益',items:groups.economy}];
   document.getElementById('statsGrid').innerHTML=metaGroups.map(g=>`<div class="stats-group"><div class="stats-group-title">${g.title}</div>${g.items.map(([k,v])=>`<div class="stat-item"><span>${k}</span><span>${v}</span></div>`).join('')}</div>`).join('');
 }
-function togglePause(){if(gameState==='PLAYING'){gameState='PAUSE';updateStatsDisplay();document.getElementById('pauseMenu').style.display='flex';saveGame()}else if(gameState==='PAUSE'){gameState='PLAYING';startInvulnerability();document.getElementById('pauseMenu').style.display='none';startTimer();saveGame()}}
+function togglePause(){if(gameState==='PLAYING'||gameState==='BOSS_INTRO'){gameState='PAUSE';updateStatsDisplay();document.getElementById('pauseMenu').style.display='flex';saveGame()}else if(gameState==='PAUSE'){gameState='PLAYING';startInvulnerability();document.getElementById('pauseMenu').style.display='none';startTimer();saveGame()}}
 
 /* ===== 存檔 ===== */
-function saveGame(){if(!['PLAYING','PAUSE','SHOP'].includes(gameState))return;if(gameMode!=='solo')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:4,gameState,wave,waveTimer,kills,player,enemies,bullets,materials,particles,damageNumbers,slashes,classId,weaponId,shopChoiceIds,purchasedItemIds,shopRerollCount,turrets,isBossWave}))}catch(e){}}
+function saveGame(){if(!['PLAYING','PAUSE','SHOP','BOSS_INTRO'].includes(gameState))return;if(gameMode!=='solo')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:5,gameState,wave,waveTimer,kills,player,enemies,bullets,materials,particles,damageNumbers,slashes,classId,weaponId,shopChoiceIds,purchasedItemIds,shopRerollCount,turrets,isBossWave}))}catch(e){}}
 function hasSave(){try{return!!localStorage.getItem(SAVE_KEY)}catch(e){return false}}
-function loadSavedGame(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(!s||![2,3,4].includes(s.version))throw Error('invalid save');gameMode='solo';player2=null;wave=s.wave||1;waveTimer=Math.min(100,s.waveTimer||0);kills=s.kills||0;classId=s.classId||'archer';weaponId=s.weaponId||'bow';shopRerollCount=Math.max(0,Number(s.shopRerollCount)||0);isBossWave=s.isBossWave||false;player={...newPlayer(classId),...s.player};player.pendingPetUpgrades=Math.max(0,Number(player.pendingPetUpgrades)||0);player.truthLevel=Math.max(0,Number(player.truthLevel)||(player.truthUnlocked?1:0));player.truthUnlocked=player.truthLevel>0;player.armor=clamp(Number(player.armor)||0,0,MAX_DEFENSE_RATE);player.dodgeChance=clamp(Number(player.dodgeChance)||0,0,MAX_DEFENSE_RATE);player.skillCd=player.skillCd||0;clampPlayerSpeed();enemies=s.enemies||[];bullets=s.bullets||[];materials=s.materials||[];particles=s.particles||[];damageNumbers=s.damageNumbers||[];slashes=s.slashes||[];turrets=s.turrets||[];shopChoiceIds=s.shopChoiceIds||[];purchasedItemIds=s.purchasedItemIds||[];if(s.gameState==='SHOP'){gameState='SHOP';document.getElementById('shopMenu').style.display='flex';renderShop()}else if(s.gameState==='PAUSE'){gameState='PAUSE';document.getElementById('pauseMenu').style.display='flex'}else{gameState='PLAYING';startInvulnerability();startTimer()}updateHUD();updateStatsDisplay()}catch(e){try{localStorage.removeItem(SAVE_KEY)}catch(_e){}}}
+function loadSavedGame(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(!s||![2,3,4,5].includes(s.version))throw Error('invalid save');gameMode='solo';player2=null;wave=s.wave||1;waveTimer=Math.min(100,s.waveTimer||0);kills=s.kills||0;classId=s.classId||'archer';weaponId=s.weaponId||'bow';shopRerollCount=Math.max(0,Number(s.shopRerollCount)||0);isBossWave=s.isBossWave||false;player={...newPlayer(classId),...s.player};player.pendingPetUpgrades=Math.max(0,Number(player.pendingPetUpgrades)||0);player.truthLevel=Math.max(0,Number(player.truthLevel)||(player.truthUnlocked?1:0));player.truthUnlocked=player.truthLevel>0;player.armor=clamp(Number(player.armor)||0,0,MAX_DEFENSE_RATE);player.dodgeChance=clamp(Number(player.dodgeChance)||0,0,MAX_DEFENSE_RATE);player.skillCd=player.skillCd||0;clampPlayerSpeed();enemies=s.enemies||[];bullets=s.bullets||[];materials=s.materials||[];particles=s.particles||[];damageNumbers=s.damageNumbers||[];slashes=s.slashes||[];turrets=s.turrets||[];shopChoiceIds=s.shopChoiceIds||[];purchasedItemIds=s.purchasedItemIds||[];bossBullets=[];bossIntro=null;if(s.gameState==='SHOP'){gameState='SHOP';document.getElementById('shopMenu').style.display='flex';renderShop()}else if(s.gameState==='PAUSE'){gameState='PAUSE';document.getElementById('pauseMenu').style.display='flex'}else{gameState='PLAYING';startInvulnerability();startTimer()}updateHUD();updateStatsDisplay()}catch(e){try{localStorage.removeItem(SAVE_KEY)}catch(_e){}}}
 
 /* ===== 繪製 ===== */
-function drawBar(e){const w=e.type==='boss'?Math.max(48,e.radius*2.4):Math.max(26,e.radius*2.4),h=e.type==='boss'?8:5,x=e.x-w/2,y=e.y-e.radius-10,r=clamp(e.hp/e.maxHp,0,1);ctx.fillStyle='#000b';ctx.fillRect(x,y,w,h);ctx.fillStyle=e.type==='boss'?'#c86bff':r>.6?'#32d59d':'#ffcd58';ctx.fillRect(x,y,w*r,h)}
+function getBossSprite(e){
+  if(e.bossType==='darkKnight')return bossSprites['darkKnight_p'+(e.bossPhase||1)];
+  if(e.bossType==='headlessKnight')return bossSprites['headlessKnight_p'+(e.bossPhase||1)];
+  return bossSprites[e.bossType];
+}
+function drawBar(e){
+  let curHp,maxHp;
+  if(e.type==='boss'&&e.bossType==='headlessKnight'&&e.bossPhase===1){curHp=e.horseHp;maxHp=e.horseMaxHp}
+  else{curHp=e.hp;maxHp=e.maxHp}
+  const w=e.type==='boss'?Math.max(48,e.radius*2.4):Math.max(26,e.radius*2.4),h=e.type==='boss'?8:5,x=e.x-w/2,y=e.y-e.radius-10,r=clamp(curHp/maxHp,0,1);
+  ctx.fillStyle='#000b';ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=e.type==='boss'?'#c86bff':r>.6?'#32d59d':'#ffcd58';ctx.fillRect(x,y,w*r,h);
+  if(e.type==='boss'&&e.bossType==='headlessKnight'&&e.bossPhase===1){ctx.fillStyle='#fbbf24';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('馬',e.x,y-3)}
+}
 function drawBullet(b){
   ctx.save();
   const grad=ctx.createLinearGradient(b.x-b.vx*3.2,b.y-b.vy*3.2,b.x,b.y);
@@ -518,6 +837,15 @@ function drawBullet(b){
   if(b.shape==='arrow'){const r=b.evolved?b.radius*1.5:b.radius;ctx.beginPath();ctx.moveTo(r+6,0);ctx.lineTo(-r-6,-r*.8);ctx.lineTo(-r-6,r*.8);ctx.closePath();ctx.fill();if(b.evolved){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill()}}
   else if(b.shape==='bolt'){const r=b.evolved?b.radius*1.5:b.radius;ctx.fillRect(-r-7,-r*.7,r*2+14,r*1.4);if(b.evolved){ctx.fillStyle='#fff';ctx.fillRect(-r,-r*.2,r*2,r*.4)}}
   else{ctx.beginPath();ctx.arc(0,0,b.radius+(b.shape==='orb'?2:1)*(b.evolved?1.5:1),0,Math.PI*2);ctx.fill();if(b.evolved){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,b.radius*.6,0,Math.PI*2);ctx.fill()}}
+  ctx.restore();
+}
+function drawBossBullet(b){
+  ctx.save();
+  if(b.trail){ctx.strokeStyle=b.color;ctx.lineWidth=Math.max(1.5,b.radius*0.6);ctx.globalAlpha=0.35;ctx.beginPath();ctx.moveTo(b.x-b.vx*1.6,b.y-b.vy*1.6);ctx.lineTo(b.x,b.y);ctx.stroke()}
+  ctx.globalAlpha=1;
+  ctx.shadowBlur=14;ctx.shadowColor=b.color;
+  ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.radius,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,b.radius*0.45,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 function drawPlayerEntity(p){
@@ -543,6 +871,7 @@ function draw(){
 
   for(const s of slashes)drawSlash(s);
   for(const b of bullets)drawBullet(b);
+  for(const b of bossBullets)drawBossBullet(b);
   for(const b of lightningBeams){ctx.save();ctx.strokeStyle=`rgba(168, 247, 255, ${b.life})`;ctx.lineWidth=3;ctx.shadowBlur=15;ctx.shadowColor='#a8f7ff';ctx.beginPath();ctx.moveTo(b.x1,b.y1);ctx.lineTo(b.x2,b.y2);ctx.stroke();ctx.restore()}
   for(const e of enemies){
     if(e.attack){const p=clamp(e.attack.elapsed/e.attack.duration,0,1);ctx.save();ctx.translate(e.attack.x,e.attack.y);ctx.rotate(e.attack.angle);ctx.fillStyle=`rgba(255,35,60,${.08+p*.35})`;ctx.strokeStyle=`rgba(255,35,60,${.45+p*.55})`;ctx.lineWidth=2;ctx.fillRect(0,-e.attack.width/2,e.attack.length,e.attack.width);ctx.strokeRect(0,-e.attack.width/2,e.attack.length,e.attack.width);ctx.restore()}
@@ -568,10 +897,14 @@ function draw(){
   }
   for(const e of enemies){
     if(e.type==='boss'&&e.bossType&&bossSprites[e.bossType]){
-      const sp=bossSprites[e.bossType],size=e.radius*3.0;
+      const sp=getBossSprite(e),size=e.radius*3.0;
       ctx.save();ctx.shadowBlur=22;ctx.shadowColor=e.color;ctx.drawImage(sp,e.x-size/2,e.y-size/2,size,size);ctx.restore();
       drawBar(e);
-      ctx.fillStyle='#fff';ctx.font='bold 15px Arial';ctx.textAlign='center';ctx.shadowBlur=12;ctx.shadowColor=e.color;ctx.fillText(e.bossName,e.x,e.y-e.radius-22);ctx.shadowBlur=0;
+      ctx.fillStyle='#fff';ctx.font='bold 15px Arial';ctx.textAlign='center';ctx.shadowBlur=12;ctx.shadowColor=e.color;
+      let tag=e.bossName||'BOSS';
+      if(e.bossType==='darkKnight'||e.bossType==='headlessKnight')tag+=` [階段 ${e.bossPhase||1}]`;
+      ctx.fillText(tag,e.x,e.y-e.radius-22);ctx.shadowBlur=0;
+      if(e.bossType==='headlessKnight'&&e.bossPhase===1){ctx.fillStyle='#fbbf24';ctx.font='bold 11px Arial';ctx.fillText('⚔ 馬（先擊殺馬）',e.x,e.y+e.radius+18);ctx.fillStyle='#fff'}
     }else{
       ctx.fillStyle=e.color;ctx.beginPath();ctx.arc(e.x,e.y,e.radius,0,Math.PI*2);ctx.fill();drawBar(e);
       if(e.type==='elite'){ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText('ELITE',e.x,e.y-e.radius-17)}
@@ -617,23 +950,41 @@ function draw(){
     const w=Math.min(innerWidth-40,900),x=(innerWidth-w)/2,y=110;
     ctx.fillStyle='#21132a';ctx.fillRect(x,y,w,13);
     ctx.fillStyle='#bd55f5';ctx.fillRect(x,y,w*clamp(boss.hp/boss.maxHp,0,1),13);
-    ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.fillText('BOSS — '+(boss.bossName||'馬鈴薯深空戰記'),innerWidth/2,y-5);
+    ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.fillText('BOSS — '+(boss.bossName||'BOSS'),innerWidth/2,y-5);
   }
 }
 
-/* ===== 傷害處理 ===== */
+/* ===== 傷害處理（含 BOSS 階段切換） ===== */
 function dealEnemyDamage(e,amount,critical=false,srcPlayer){
   if(!e||e.dead)return;
   if(!enemyInView(e))return;
+  if(e.invulnerable){addDamageNumber(e.x,e.y-e.radius,'無敵','#888');return}
   const owner=srcPlayer||player;
   let finalAmount=amount;
   if(owner.hpDamagePercent){finalAmount+=e.hp*0.01}
-  const finalMultiplier=truthDamageMultiplier(owner)*petDamageMultiplier(owner),finalAmountWithMult=finalAmount*finalMultiplier;
+  const defenseRate=clamp(e.defense||0,0,0.6);
+  finalAmount*=(1-defenseRate);
+  const finalMultiplier=truthDamageMultiplier(owner)*petDamageMultiplier(owner);
+  const finalAmountWithMult=Math.max(1,finalAmount*finalMultiplier);
+  if(e.bossType==='headlessKnight'&&e.bossPhase===1){
+    e.horseHp-=finalAmountWithMult;
+    addDamageNumber(e.x,e.y-e.radius,`${Math.round(finalAmountWithMult)}`,critical?'#ff334d':'#fff',critical);
+    const now=performance.now();
+    if(!e.lastHitSound||now-e.lastHitSound>75){playSound('enemyHit');e.lastHitSound=now}
+    if(owner.vampire>0){const before=owner.hp;owner.hp=Math.min(owner.maxHp,owner.hp+owner.vampire);const healed=Math.floor(owner.hp-before);if(healed>0)addDamageNumber(owner.x,owner.y-30,`+${healed}`,'#35e58a')}
+    if(e.horseHp<=0){e.bossPhase=2;e.invulnerable=false;e.hp=e.maxHp*0.5;e.damage*=1.2;e.speed*=1.6;spawnParticles(e.x,e.y,'#ff6b35',40,2);showPhaseTag('無頭騎士 - 馬已倒下！');playSound('playerHit')}
+    return;
+  }
   e.hp-=finalAmountWithMult;
   addDamageNumber(e.x,e.y-e.radius,`${Math.round(finalAmountWithMult)}`,critical?'#ff334d':'#fff',critical);
   const now=performance.now();
   if(!e.lastHitSound||now-e.lastHitSound>75){playSound('enemyHit');e.lastHitSound=now}
   if(owner.vampire>0){const before=owner.hp;owner.hp=Math.min(owner.maxHp,owner.hp+owner.vampire);const healed=Math.floor(owner.hp-before);if(healed>0)addDamageNumber(owner.x,owner.y-30,`+${healed}`,'#35e58a')}
+  if(e.bossType==='darkKnight'){
+    const pct=e.hp/e.maxHp;
+    if(e.bossPhase===1&&pct<0.66){e.bossPhase=2;e.damage*=1.5;e.defense=Math.min(0.5,(e.defense||0.15)*1.5);e.speed*=1.1;spawnParticles(e.x,e.y,'#dc2626',40,2);showPhaseTag('暗黑騎士 - 第二階段！');playSound('playerHit')}
+    else if(e.bossPhase===2&&pct<0.33){e.bossPhase=3;e.damage*=1.3;e.defense=Math.min(0.6,(e.defense||0.15)*1.3);e.speed*=1.1;spawnParticles(e.x,e.y,'#7c3aed',50,2.5);showPhaseTag('暗黑騎士 - 第三階段！');playSound('playerHit')}
+  }
 }
 function damageBeast(b,amount){
   if(!b||b.life<=0)return;
@@ -671,7 +1022,8 @@ function handlePlayerDown(p){
 
 /* ===== 職業技能 ===== */
 function trySkill(p){
-  if(!p||p.dead||gameState!=='PLAYING')return;
+  if(!p||p.dead)return;
+  if(gameState!=='PLAYING')return;
   if(p.skillCd>0)return;
   const job=classes.find(c=>c.id===p.classId);if(!job)return;
   p.skillCd=job.skillCd;
@@ -822,14 +1174,65 @@ function updateBullets(){
     if(hit||b.life<=0||b.x<-50||b.x>innerWidth+50||b.y<-50||b.y>innerHeight+50)bullets.splice(i,1);
   }
 }
+function updateBossBullets(){
+  for(let i=bossBullets.length-1;i>=0;i--){
+    const b=bossBullets[i];
+    if(b.homing&&b.owner){
+      const tgt=nearestPlayer(b.x,b.y);
+      if(tgt){
+        const desired=Math.atan2(tgt.y-b.y,tgt.x-b.x);
+        const current=Math.atan2(b.vy,b.vx);
+        let diff=desired-current;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
+        const newAngle=current+diff*b.homingRate,speed=Math.hypot(b.vx,b.vy);
+        b.vx=Math.cos(newAngle)*speed;b.vy=Math.sin(newAngle)*speed;
+      }
+    }
+    b.x+=b.vx;b.y+=b.vy;b.life--;
+    let hit=false;
+    for(const p of alivePlayers()){
+      if(Math.hypot(b.x-p.x,b.y-p.y)<p.radius+b.radius){damagePlayer(b.damage,b.owner,p);hit=true;break}
+    }
+    if(hit||b.life<=0||b.x<-60||b.x>innerWidth+60||b.y<-60||b.y>innerHeight+60){
+      if(hit)spawnParticles(b.x,b.y,b.color,8,1.2);
+      bossBullets.splice(i,1);
+    }
+  }
+}
+function updatePlayerMovementOnly(){
+  let mx=0,my=0;
+  if(keys.KeyW)my--;if(keys.KeyS)my++;if(keys.KeyA)mx--;if(keys.KeyD)mx++;
+  if(!player2){if(keys.ArrowUp)my--;if(keys.ArrowDown)my++;if(keys.ArrowLeft)mx--;if(keys.ArrowRight)mx++}
+  if(touchData.active){mx=touchData.vx;my=touchData.vy}
+  movePlayerEntity(player,mx,my);
+  if(player2){
+    let mx2=0,my2=0;
+    if(keys.ArrowUp)my2--;if(keys.ArrowDown)my2++;if(keys.ArrowLeft)mx2--;if(keys.ArrowRight)mx2++;
+    if(touchData2.active){mx2=touchData2.vx;my2=touchData2.vy}
+    movePlayerEntity(player2,mx2,my2);
+  }
+}
 
 /* ===== 主更新 ===== */
 function update(){
+  /* 相位標籤計時 */
+  if(bossPhaseTagTimer>0){bossPhaseTagTimer--;if(bossPhaseTagTimer===0)document.getElementById('bossPhaseTag').classList.remove('show')}
+
+  if(gameState==='BOSS_INTRO'){
+    for(const p of activePlayers()){if(p.invulnerabilityFrames>0)p.invulnerabilityFrames--;if(p.skillCd>0)p.skillCd--}
+    updatePlayerMovementOnly();
+    updateBossIntro();
+    for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay}
+    particles=particles.filter(p=>p.life>0);
+    for(const d of damageNumbers){d.y+=d.vy;d.life-=.02}
+    damageNumbers=damageNumbers.filter(d=>d.life>0);
+    skillFrame++;
+    updateHUD();
+    return;
+  }
   if(gameState!=='PLAYING')return;
   const list=activePlayers();
   for(const p of list){if(p.invulnerabilityFrames>0)p.invulnerabilityFrames--;if(p.skillCd>0)p.skillCd--;if(p.skillActive>0)p.skillActive--}
 
-  /* 移動輸入 */
   let mx=0,my=0;
   if(keys.KeyW)my--;if(keys.KeyS)my++;if(keys.KeyA)mx--;if(keys.KeyD)mx++;
   if(!player2){if(keys.ArrowUp)my--;if(keys.ArrowDown)my++;if(keys.ArrowLeft)mx--;if(keys.ArrowRight)mx++}
@@ -842,12 +1245,10 @@ function update(){
     movePlayerEntity(player2,mx2,my2);
   }
 
-  /* 倒地復活 */
   for(const p of list){
     if(p.dead){p.respawnTimer--;if(p.respawnTimer<=0){p.dead=false;p.hp=Math.round(p.maxHp*.5);p.invulnerabilityFrames=180;spawnParticles(p.x,p.y,'#0fc',24,1.4);addDamageNumber(p.x,p.y-30,'重返戰場！','#0fc')}}
   }
 
-  /* 戰鬥 */
   if(gameMode==='pvp'){
     playerCombat(player,mx,my,[player2]);
     if(player2)playerCombat(player2,mx2,my2,[player]);
@@ -855,10 +1256,8 @@ function update(){
     playerCombat(player,mx,my,enemies);
     if(player2)playerCombat(player2,mx2,my2,enemies);
   }
-
   skillFrame++;
 
-  /* 無人機 */
   for(const p of list){
     if(p.dead)continue;
     const dc=p.droneCount||0;if(!p.droneCd)p.droneCd=[];
@@ -871,7 +1270,6 @@ function update(){
       p.droneCd[i]=46;
     }
   }
-  /* 炮台 */
   for(const turret of turrets){
     turret.cooldown=(turret.cooldown||0)-1;if(turret.cooldown>0)continue;
     const target=nearestEnemy(turret.x,turret.y,420);if(!target)continue;
@@ -890,12 +1288,12 @@ function update(){
   }
 
   updateBullets();
+  updateBossBullets();
 
   for(let i=slashes.length-1;i>=0;i--){slashes[i].life-=.016;if(slashes[i].life<=0)slashes.splice(i,1)}
   for(let i=lightningBeams.length-1;i>=0;i--){lightningBeams[i].life-=0.12;if(lightningBeams[i].life<=0)lightningBeams.splice(i,1)}
   for(let i=eliteFlashes.length-1;i>=0;i--){eliteFlashes[i].life-=0.15;if(eliteFlashes[i].life<=0)eliteFlashes.splice(i,1)}
 
-  /* BOSS 技能區 / 光束 */
   for(let i=bossZones.length-1;i>=0;i--){
     const z=bossZones[i];z.t++;
     if(!z.fired&&z.t>=z.dur){z.fired=true;for(const p of alivePlayers()){if(Math.hypot(p.x-z.x,p.y-z.y)<=z.r+p.radius)damagePlayer(z.dmg,z.owner,p)}spawnParticles(z.x,z.y,z.color,20,1.5)}
@@ -908,7 +1306,6 @@ function update(){
   }
   for(let i=bossCircles.length-1;i>=0;i--){bossCircles[i].elapsed=(bossCircles[i].elapsed||0)+1;bossCircles[i].life-=0.05;if(bossCircles[i].life<=0)bossCircles.splice(i,1)}
 
-  /* PVP 專用 */
   if(gameMode==='pvp'){
     for(const p of list){if(p.dead)continue;if(p.hp<=0)handlePlayerDown(p)}
     for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay}
@@ -918,7 +1315,7 @@ function update(){
     updateHUD();return;
   }
 
-  /* 生成敵人 */
+  /* 非 BOSS 關卡生成敵人 */
   const spawnRate=Math.max(20,80-wave*4)/(player2?1.5:1);
   if(!isBossWave&&++enemySpawnCounter>=spawnRate){
     enemySpawnCounter=0;
@@ -941,14 +1338,14 @@ function update(){
     if(e.type==='boss'){
       e.x+=(tgt.x-e.x)/d*e.speed;e.y+=(tgt.y-e.y)/d*e.speed;
       updateBossSkill(e);
-      if(!e.summonCd)e.summonCd=120;
+      if(!e.summonCd)e.summonCd=150;
       if(e.summonCd>0)e.summonCd--;
-      if(e.summonCd<=0&&enemies.length<15){
-        const summonCount=2+Math.floor(wave/5);
+      if(e.summonCd<=0&&enemies.length<20){
+        const summonCount=2+Math.floor(wave/5)+(e.bossPhase||1);
         for(let k=0;k<summonCount;k++){
           const a=Math.random()*Math.PI*2,dist=e.radius+30+Math.random()*40;
           const ex=clamp(e.x+Math.cos(a)*dist,20,innerWidth-20),ey=clamp(e.y+Math.sin(a)*dist,20,innerHeight-20);
-          enemies.push(makeEnemy('normal',ex,ey));
+          const minion=makeEnemy('normal',ex,ey);minion.ownerBoss=e;enemies.push(minion);
         }
         spawnParticles(e.x,e.y,e.color,15,1.5);
         e.summonCd=Math.max(120,300-wave*10);
@@ -973,7 +1370,6 @@ function update(){
       e.x+=(tgt.x-e.x)/d*e.speed;e.y+=(tgt.y-e.y)/d*e.speed;
     }
 
-    /* 接觸傷害 0.1 秒間隔 */
     if(e.type!=='elite'&&e.type!=='boss'){
       for(const p of alivePlayers()){
         const dd=Math.hypot(p.x-e.x,p.y-e.y);
@@ -991,6 +1387,17 @@ function update(){
     }
 
     if(e.hp<=0){
+      /* BOSS 死亡：清除所有專屬召喚物 */
+      if(e.type==='boss'){
+        for(const en of enemies){
+          if(en!==e&&en.ownerBoss===e){en.hp=0;en.silentDeath=true}
+        }
+      }
+      /* 召喚物死亡：不掉金幣、不掉素材 */
+      if(e.silentDeath||e.ownerBoss){
+        spawnParticles(e.x,e.y,e.color,6);
+        enemies.splice(i,1);continue;
+      }
       kills++;
       if((e.type==='elite'||e.type==='boss')&&wave>=10){player.pendingPetUpgrades++;if(player2)player2.pendingPetUpgrades++}
       const gold=(e.type==='boss'?150:e.type==='elite'?80:10);
@@ -1003,7 +1410,10 @@ function update(){
       if(dropC){meta.charMat+=dropC;addDamageNumber(e.x,e.y-52,`+${dropC} 角色靈魂`,'#c86bff')}
       if(dropW||dropC)saveMeta();
       spawnParticles(e.x,e.y,e.color,e.type==='boss'?35:15,1.6);
-      materials.push({x:clamp(e.x,5,Math.max(5,innerWidth-5)),y:clamp(e.y,5,Math.max(5,innerHeight-5)),value:Math.max(1,Math.round((e.type==='boss'?120:e.type==='elite'?80:5)*(1+wave*.08)*(1+(player.incomeBonus||0))))});
+      /* 掉落物價值 ×2.5 */
+      const baseVal=(e.type==='boss'?120:e.type==='elite'?80:5);
+      const val=Math.max(1,Math.round(baseVal*2.5*(1+wave*.08)*(1+(player.incomeBonus||0))));
+      materials.push({x:clamp(e.x,5,Math.max(5,innerWidth-5)),y:clamp(e.y,5,Math.max(5,innerHeight-5)),value:val});
       enemies.splice(i,1);
     }
   }
@@ -1033,7 +1443,7 @@ function update(){
   /* 結算 */
   if(isBossWave){
     const bossExists=enemies.some(e=>e.type==='boss');
-    if(!bossExists){enemies=[];materials=[];bullets=[];triggerShop()}
+    if(!bossExists){enemies=[];materials=[];bullets=[];bossBullets=[];triggerShop()}
   }else{
     if(player.hp>0&&waveTimer<=0&&enemies.length===0&&document.getElementById('shopMenu').style.display!=='flex')triggerShop();
   }
@@ -1081,7 +1491,6 @@ bind('restartBtn',()=>{document.getElementById('gameOverMenu').style.display='no
 bind('skillBtn',()=>trySkill(player));
 bind('skillBtn2',()=>trySkill(player2));
 
-/* 等級碼綁定 */
 bind('exportCodeBtn',()=>{const code=generateCode();if(code){navigator.clipboard.writeText(code).then(()=>alert('等级码已复制到剪贴板！')).catch(()=>prompt('复制以下等级码:',code))}});
 bind('importCodeBtn',()=>{const code=document.getElementById('importCodeInput').value.trim();if(importCode(code))alert('等级码导入成功！')});
 bind('exportCodeBtn2',()=>{const code=generateCode();if(code){navigator.clipboard.writeText(code).then(()=>alert('等级码已复制到剪贴板！')).catch(()=>prompt('复制以下等级码:',code))}});
